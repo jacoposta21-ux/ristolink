@@ -14,13 +14,14 @@ import { notFoundHtml, unavailableHtml } from "./lib/tenant/unavailable";
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 const EXTRA_ROOT_HOSTS = (process.env.EXTRA_ROOT_HOSTS || "").split(",").filter(Boolean);
+const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || "").split(",").filter(Boolean);
 
 // Percorsi interni che non devono essere raggiungibili direttamente
 const INTERNAL = /^\/(admin|tenant)(\/|$)/;
 
 export async function proxy(req: NextRequest) {
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
-  const target = classifyHost(host, ROOT, EXTRA_ROOT_HOSTS);
+  const target = classifyHost(host, ROOT, EXTRA_ROOT_HOSTS, ADMIN_HOSTS);
   const url = req.nextUrl.clone();
   const path = url.pathname;
 

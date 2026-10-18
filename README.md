@@ -343,6 +343,7 @@ Tutte documentate in [`.env.example`](.env.example). Riassunto:
 | `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | no | domini automatici |
 | `NEXT_PUBLIC_CONTACT_PHONE`, `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_COMPANY_INFO` | no | landing |
 | `TENANT_CACHE_TTL_SECONDS` | no | cache del proxy (default 60) |
+| `ADMIN_HOSTS` | no | host extra che aprono la dashboard (es. l'URL `*.vercel.app` del progetto) |
 | `STRIPE_API_HOST` | no | solo per test con [stripe-mock](https://github.com/stripe/stripe-mock) |
 
 ---

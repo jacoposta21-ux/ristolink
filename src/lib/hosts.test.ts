@@ -28,6 +28,10 @@ describe("classifyHost", () => {
     expect(classifyHost("ristolink-git-x.vercel.app", R)).toEqual({ kind: "root" });
     expect(classifyHost("127.0.0.1:3000", R, ["127.0.0.1"])).toEqual({ kind: "root" });
   });
+  it("host admin aggiuntivi (es. URL vercel.app)", () => {
+    expect(classifyHost("miositoveloce-x.vercel.app", R, [], ["miositoveloce-x.vercel.app"])).toEqual({ kind: "admin" });
+    expect(classifyHost("altro.vercel.app", R, [], ["miositoveloce-x.vercel.app"])).toEqual({ kind: "root" });
+  });
   it("host vuoto o senza punto", () => {
     expect(classifyHost("", R)).toEqual({ kind: "invalid" });
     expect(classifyHost("intranet", R)).toEqual({ kind: "invalid" });

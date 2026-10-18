@@ -18,15 +18,19 @@ export function hostnameOf(host: string | null | undefined): string {
  * @param host        header Host della richiesta (es. "damario.miositoveloce.it" o "damario.localhost:3000")
  * @param rootDomain  dominio base (es. "miositoveloce.it" o "localhost:3000" in sviluppo)
  * @param extraRootHosts host aggiuntivi trattati come root (es. l'URL *.vercel.app del deploy)
+ * @param extraAdminHosts host aggiuntivi che aprono la dashboard (es. "miositoveloce-xyz.vercel.app",
+ *                        utile prima che il dominio sia attivo)
  */
 export function classifyHost(
   host: string | null | undefined,
   rootDomain: string,
   extraRootHosts: string[] = [],
+  extraAdminHosts: string[] = [],
 ): HostKind {
   const h = hostnameOf(host);
   const root = hostnameOf(rootDomain);
   if (!h) return { kind: "invalid" };
+  if (extraAdminHosts.map(hostnameOf).includes(h)) return { kind: "admin" };
   if (h === root || extraRootHosts.map(hostnameOf).includes(h)) return { kind: "root" };
   if (h === `www.${root}`) return { kind: "www" };
   if (h === `admin.${root}`) return { kind: "admin" };
