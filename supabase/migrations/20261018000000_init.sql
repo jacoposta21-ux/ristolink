@@ -20,7 +20,7 @@ create type public.client_status as enum (
 
 -- ---------- updated_at automatico ----------
 create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = '' as $$
 begin
   new.updated_at = now();
   return new;
@@ -176,29 +176,29 @@ alter table public.stripe_events enable row level security;
 
 -- admins: ognuno vede solo la propria riga (serve a is_admin lato app)
 create policy "admins_select_self" on public.admins
-  for select to authenticated using (user_id = auth.uid());
+  for select to authenticated using (user_id = (select auth.uid()));
 
 create policy "settings_admin_all" on public.settings
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 
 create policy "clients_admin_all" on public.clients
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 
 create policy "sites_admin_all" on public.sites
-  for all to authenticated using (public.is_admin()) with check (public.is_admin());
+  for all to authenticated using ((select public.is_admin())) with check ((select public.is_admin()));
 
 -- payments/events_log/stripe_events: in sola lettura per l'admin,
 -- scritti solo dal server (service_role)
 create policy "payments_admin_read" on public.payments
-  for select to authenticated using (public.is_admin());
+  for select to authenticated using ((select public.is_admin()));
 
 create policy "events_log_admin_read" on public.events_log
-  for select to authenticated using (public.is_admin());
+  for select to authenticated using ((select public.is_admin()));
 create policy "events_log_admin_insert" on public.events_log
-  for insert to authenticated with check (public.is_admin());
+  for insert to authenticated with check ((select public.is_admin()));
 
 create policy "stripe_events_admin_read" on public.stripe_events
-  for select to authenticated using (public.is_admin());
+  for select to authenticated using ((select public.is_admin()));
 
 -- =====================================================================
 -- Funzione pubblica per il proxy: host -> tenant (dati minimi)
@@ -227,7 +227,7 @@ $$;
 
 revoke all on function public.resolve_tenant(text, text) from public;
 grant execute on function public.resolve_tenant(text, text) to anon, authenticated, service_role;
-revoke all on function public.is_admin() from public;
+revoke all on function public.is_admin() from public, anon;
 grant execute on function public.is_admin() to authenticated, service_role;
 
 -- =====================================================================
@@ -255,11 +255,11 @@ values ('site-media', 'site-media', true)
 on conflict (id) do nothing;
 
 create policy "site_media_admin_insert" on storage.objects
-  for insert to authenticated with check (bucket_id = 'site-media' and public.is_admin());
+  for insert to authenticated with check (bucket_id = 'site-media' and (select public.is_admin()));
 create policy "site_media_admin_update" on storage.objects
-  for update to authenticated using (bucket_id = 'site-media' and public.is_admin());
+  for update to authenticated using (bucket_id = 'site-media' and (select public.is_admin()));
 create policy "site_media_admin_delete" on storage.objects
-  for delete to authenticated using (bucket_id = 'site-media' and public.is_admin());
+  for delete to authenticated using (bucket_id = 'site-media' and (select public.is_admin()));
 
 -- =====================================================================
 -- Privilegi espliciti (non dipendere dai default del progetto)
