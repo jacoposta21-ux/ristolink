@@ -6,10 +6,10 @@ import { isLive } from "./lib/billing/status";
 import { notFoundHtml, unavailableHtml } from "./lib/tenant/unavailable";
 
 // Smistamento multi-tenant per host:
-//   ristolink.it              -> landing + /paga/<token> + /portale/<token>
-//   www.ristolink.it          -> redirect 308 a ristolink.it
-//   admin.ristolink.it/...    -> /admin/... (dashboard, login Supabase)
-//   <slug>.ristolink.it/...   -> /tenant/<slug>/... (se online) oppure pagina neutra 503
+//   miositoveloce.it              -> landing + /paga/<token> + /portale/<token>
+//   www.miositoveloce.it          -> redirect 308 a miositoveloce.it
+//   admin.miositoveloce.it/...    -> /admin/... (dashboard, login Supabase)
+//   <slug>.miositoveloce.it/...   -> /tenant/<slug>/... (se online) oppure pagina neutra 503
 //   dominio-cliente.it/...    -> come sopra, risolto tramite clients.custom_domain
 
 const ROOT = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";

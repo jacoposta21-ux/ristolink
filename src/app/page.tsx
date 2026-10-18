@@ -4,11 +4,11 @@ import { waHref } from "@/lib/format";
 import { ROOT_URL } from "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "RistoLink — Il sito per la tua attività a 9,99 €/mese",
+  title: "MioSitoVeloce — Il sito per la tua attività a 9,99 €/mese",
   description:
     "Siti web belli e veloci per ristoranti, parrucchieri, artigiani e negozi. Nessun costo iniziale: 9,99 € al mese IVA inclusa, disdici quando vuoi.",
   metadataBase: new URL(ROOT_URL),
-  openGraph: { type: "website", locale: "it_IT", siteName: "RistoLink" },
+  openGraph: { type: "website", locale: "it_IT", siteName: "MioSitoVeloce" },
 };
 
 const PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "";
@@ -26,17 +26,17 @@ const FEATURES = [
 const FAQ = [
   ["Ci sono costi iniziali?", "No. Paghi solo 9,99 € al mese IVA inclusa, con carta o addebito sul conto (SEPA)."],
   ["Posso disdire quando voglio?", "Sì, senza penali. Disdici in autonomia dal tuo link di gestione pagamenti."],
-  ["Posso usare un mio dominio (es. miaattivita.it)?", "Sì. Di base il sito è su nomeattivita.ristolink.it, ma possiamo collegare il tuo dominio."],
+  ["Posso usare un mio dominio (es. miaattivita.it)?", "Sì. Di base il sito è su nomeattivita.miositoveloce.it, ma possiamo collegare il tuo dominio."],
   ["Chi aggiorna i contenuti?", "Noi: ci invii le modifiche via WhatsApp o email e le pubblichiamo."],
 ];
 
 export default function Landing() {
-  const contactHref = PHONE ? waHref(PHONE, "Ciao! Vorrei informazioni sul sito RistoLink per la mia attività.") : EMAIL ? `mailto:${EMAIL}` : "#contatti";
+  const contactHref = PHONE ? waHref(PHONE, "Ciao! Vorrei informazioni sul sito MioSitoVeloce per la mia attività.") : EMAIL ? `mailto:${EMAIL}` : "#contatti";
   return (
     <div className="bg-white text-neutral-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
         <div className="flex items-center gap-2 text-lg font-bold">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-900 text-white">R</span> RistoLink
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-900 text-white">M</span> MioSitoVeloce
         </div>
         <a href={contactHref} className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-700">Contattaci</a>
       </header>
@@ -96,7 +96,7 @@ export default function Landing() {
             </div>
             <p className="text-sm text-neutral-500">IVA inclusa · nessun vincolo</p>
             <ul className="mt-6 space-y-2.5">
-              {["Sito professionale su misura", "Sottodominio incluso (tuonome.ristolink.it)", "Aggiornamenti dei contenuti", "Hosting veloce e certificato SSL", "Privacy e cookie banner"].map((t) => (
+              {["Sito professionale su misura", "Sottodominio incluso (tuonome.miositoveloce.it)", "Aggiornamenti dei contenuti", "Hosting veloce e certificato SSL", "Privacy e cookie banner"].map((t) => (
                 <li key={t} className="flex gap-2"><Check className="h-5 w-5 shrink-0 text-emerald-600" /> {t}</li>
               ))}
             </ul>
@@ -119,7 +119,7 @@ export default function Landing() {
 
       <footer id="contatti" className="border-t border-neutral-200 px-5 py-10 text-sm text-neutral-500">
         <div className="mx-auto flex max-w-6xl flex-col justify-between gap-3 md:flex-row">
-          <p>© {new Date().getFullYear()} RistoLink{process.env.NEXT_PUBLIC_COMPANY_INFO ? ` — ${process.env.NEXT_PUBLIC_COMPANY_INFO}` : ""}</p>
+          <p>© {new Date().getFullYear()} MioSitoVeloce{process.env.NEXT_PUBLIC_COMPANY_INFO ? ` — ${process.env.NEXT_PUBLIC_COMPANY_INFO}` : ""}</p>
           <div className="flex gap-4">
             {PHONE && <a href={`tel:${PHONE}`} className="hover:underline">{PHONE}</a>}
             {EMAIL && <a href={`mailto:${EMAIL}`} className="hover:underline">{EMAIL}</a>}

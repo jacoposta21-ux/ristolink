@@ -2,10 +2,10 @@
 // Funzione pura: usata dal proxy e testata in hosts.test.ts.
 
 export type HostKind =
-  | { kind: "root" }                      // ristolink.it -> landing, /paga, /portale
-  | { kind: "www" }                       // www.ristolink.it -> redirect alla root
-  | { kind: "admin" }                     // admin.ristolink.it -> dashboard
-  | { kind: "tenant-slug"; slug: string } // damario.ristolink.it
+  | { kind: "root" }                      // miositoveloce.it -> landing, /paga, /portale
+  | { kind: "www" }                       // www.miositoveloce.it -> redirect alla root
+  | { kind: "admin" }                     // admin.miositoveloce.it -> dashboard
+  | { kind: "tenant-slug"; slug: string } // damario.miositoveloce.it
   | { kind: "tenant-domain"; domain: string } // damario.it / www.damario.it
   | { kind: "invalid" };
 
@@ -15,8 +15,8 @@ export function hostnameOf(host: string | null | undefined): string {
 }
 
 /**
- * @param host        header Host della richiesta (es. "damario.ristolink.it" o "damario.localhost:3000")
- * @param rootDomain  dominio base (es. "ristolink.it" o "localhost:3000" in sviluppo)
+ * @param host        header Host della richiesta (es. "damario.miositoveloce.it" o "damario.localhost:3000")
+ * @param rootDomain  dominio base (es. "miositoveloce.it" o "localhost:3000" in sviluppo)
  * @param extraRootHosts host aggiuntivi trattati come root (es. l'URL *.vercel.app del deploy)
  */
 export function classifyHost(
@@ -33,7 +33,7 @@ export function classifyHost(
 
   if (h.endsWith(`.${root}`)) {
     const sub = h.slice(0, -(root.length + 1));
-    // un solo livello di sottodominio: "a.b.ristolink.it" non è valido
+    // un solo livello di sottodominio: "a.b.miositoveloce.it" non è valido
     if (!sub || sub.includes(".")) return { kind: "invalid" };
     return { kind: "tenant-slug", slug: sub };
   }

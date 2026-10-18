@@ -54,7 +54,7 @@ export function PrivacyPolicy({ client, content, homeHref }: { client: PublicCli
         <section>
           <h2>Fornitori</h2>
           <p>
-            Il sito è realizzato e gestito tramite la piattaforma RistoLink, che agisce come responsabile del trattamento, e ospitato su
+            Il sito è realizzato e gestito tramite la piattaforma MioSitoVeloce, che agisce come responsabile del trattamento, e ospitato su
             infrastruttura Vercel Inc. e Supabase (con garanzie adeguate per eventuali trasferimenti extra UE, art. 46 GDPR).
           </p>
         </section>

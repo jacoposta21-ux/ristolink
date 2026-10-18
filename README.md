@@ -1,12 +1,12 @@
-# RistoLink
+# MioSitoVeloce
 
 Piattaforma multi-tenant per i siti web delle piccole attività locali (ristoranti, parrucchieri, artigiani, negozi).
 Modello: **nessun costo iniziale, 9,99 €/mese IVA inclusa**. Se il cliente non paga il sito si sospende da solo,
 quando paga torna online da solo.
 
-- `ristolink.it` → landing del servizio + link pubblici di pagamento (`/paga/<token>`) e del portale (`/portale/<token>`)
-- `admin.ristolink.it` → dashboard (solo tu, login protetto)
-- `<slug>.ristolink.it` → sito del cliente (es. `damario.ristolink.it`)
+- `miositoveloce.it` → landing del servizio + link pubblici di pagamento (`/paga/<token>`) e del portale (`/portale/<token>`)
+- `admin.miositoveloce.it` → dashboard (solo tu, login protetto)
+- `<slug>.miositoveloce.it` → sito del cliente (es. `damario.miositoveloce.it`)
 - `damario.it` (opzionale) → stesso sito, su dominio personalizzato del cliente
 
 | Dashboard | Scheda cliente | Sito (ristorante) | Mobile | Sospeso |
@@ -23,8 +23,8 @@ Altri template: [beauty](docs/screenshots/10-sito-beauty.png) · [negozio](docs/
                 ┌──────────────────────── Vercel (un solo progetto Next.js 16) ───────────────────────┐
  visitatore ──▶ │ src/proxy.ts  (ex "middleware")                                                       │
                 │   host → classifyHost()                                                               │
-                │   ├─ ristolink.it         → landing, /paga, /portale                                  │
-                │   ├─ admin.ristolink.it   → /admin/*  (+ refresh sessione Supabase)                   │
+                │   ├─ miositoveloce.it         → landing, /paga, /portale                                  │
+                │   ├─ admin.miositoveloce.it   → /admin/*  (+ refresh sessione Supabase)                   │
                 │   └─ slug / dominio       → resolve_tenant() [cache 60 s] ─┬─ online  → /tenant/<slug> │
                 │                                                           └─ offline → pagina 503 neutra│
                 │ /tenant/[slug]  pagina ISR, dati in cache con tag "tenant:<slug>"                     │
@@ -44,7 +44,7 @@ Altri template: [beauty](docs/screenshots/10-sito-beauty.png) · [negozio](docs/
 | Framework | Next.js 16 App Router + TypeScript | In Next 16 il middleware si chiama `proxy.ts` (runtime Node). Caching "classico" (`unstable_cache` + ISR + `revalidateTag`), Cache Components disattivati per semplicità. |
 | Stato del cliente | **una sola funzione pura** `computeStatus()` (`src/lib/billing/status.ts`) | Webhook, cron e azioni manuali passano tutti da `syncClient()`, che **rilegge sempre l'abbonamento da Stripe** ("fetch-latest"): l'ordine dei webhook non conta e rielaborare un evento è innocuo. |
 | Tolleranza | `past_due_since` + `settings.grace_days` | Stripe non emette eventi "al 7° giorno": la sospensione la applica il cron giornaliero. |
-| Link di pagamento | `ristolink.it/paga/<token>` stabile | Le sessioni Checkout scadono in 24 h; il nostro link non scade, mostra un riepilogo (anteprima carina su WhatsApp) e crea la sessione al clic. Se c'è già un abbonamento attivo apre il portale invece di crearne un secondo. |
+| Link di pagamento | `miositoveloce.it/paga/<token>` stabile | Le sessioni Checkout scadono in 24 h; il nostro link non scade, mostra un riepilogo (anteprima carina su WhatsApp) e crea la sessione al clic. Se c'è già un abbonamento attivo apre il portale invece di crearne un secondo. |
 | Proxy | solo chiave pubblica + funzione SQL `resolve_tenant()` | Il proxy non vede nessuna tabella: solo slug, nome, stato, pubblicato. Cache in memoria di 60 s (anche per i "non trovato"). |
 | Pagina di sospensione | HTML statico dal proxy, **HTTP 503 + Retry-After** | Neutra ("Sito temporaneamente non disponibile"), nessun riferimento ai pagamenti; il 503 dice a Google che è temporaneo. |
 | Foto | Supabase Storage (bucket pubblico `site-media`), ridimensionate nel browser a max 1920 px WebP | Siti leggeri senza costi di ottimizzazione immagini. |
@@ -81,10 +81,10 @@ pagato → online, sospensione manuale, disdetta, archiviazione, 4 template, SEO
 src/
   proxy.ts                      smistamento per host (multi-tenant)
   app/
-    page.tsx, privacy/          landing ristolink.it
+    page.tsx, privacy/          landing miositoveloce.it
     paga/[token], paga/grazie   pagina di attivazione → Stripe Checkout
     portale/[token]             accesso al Customer Portal
-    admin/                      dashboard (servita su admin.ristolink.it)
+    admin/                      dashboard (servita su admin.miositoveloce.it)
       actions.ts                Server Action (tutte verificano l'admin)
       login/  (app)/page.tsx  (app)/clienti/…  (app)/richiamare  (app)/impostazioni
       clienti/[id]/anteprima    anteprima del sito (anche se non pubblicato/non pagato)
@@ -135,7 +135,7 @@ Comandi utili: `npm test` (unit test), `npm run typecheck`, `npm run lint`, `npm
    ```
 5. **Chiudi le registrazioni**: Authentication → Sign In / Providers → disattiva *Allow new users to sign up*.
    (Anche se qualcuno si registrasse, senza riga in `admins` la RLS non gli mostra nulla e la dashboard lo respinge.)
-6. Authentication → URL Configuration → *Site URL*: `https://admin.ristolink.it` (in locale `http://admin.localhost:3000`).
+6. Authentication → URL Configuration → *Site URL*: `https://admin.miositoveloce.it` (in locale `http://admin.localhost:3000`).
 
 **Sicurezza (RLS)**: tutte le tabelle hanno RLS attiva. L'utente anonimo non legge nessuna tabella (solo la funzione
 `resolve_tenant`). Un utente autenticato vede/modifica clienti e siti solo se è in `admins`; `payments` e `stripe_events`
@@ -149,14 +149,14 @@ Tutto quanto segue va fatto **con il toggle "Test mode" attivo**; quando funzion
 webhook e impostazioni sono separati tra test e live).
 
 1. **Prodotto e prezzo** — `STRIPE_SECRET_KEY=sk_test_… npm run stripe:setup` stampa `STRIPE_PRICE_ID=price_…`.
-   (A mano: Product catalog → Add product "Sito web RistoLink" → prezzo ricorrente 9,99 EUR mensile,
+   (A mano: Product catalog → Add product "Sito web MioSitoVeloce" → prezzo ricorrente 9,99 EUR mensile,
    *Include tax in price: Sì*.)
 2. **Metodi di pagamento** — Settings → Payments → Payment methods: attiva **Cards** e **SEPA Direct Debit**.
    Il Checkout li filtra con `allowed_payment_method_types: ["card", "sepa_debit"]`.
 3. **IVA** — il prezzo è "IVA inclusa". Per l'emissione delle fatture con IVA esposta puoi attivare Stripe Tax
    (Settings → Tax) oppure gestire la fatturazione elettronica (SDI) col tuo commercialista: le ricevute Stripe non sono
    fatture elettroniche italiane.
-4. **Webhook** — Developers → Webhooks → *Add endpoint*: `https://admin.ristolink.it/api/stripe/webhook`
+4. **Webhook** — Developers → Webhooks → *Add endpoint*: `https://admin.miositoveloce.it/api/stripe/webhook`
    (funziona su qualsiasi host del progetto), eventi:
    ```
    checkout.session.completed
@@ -216,8 +216,8 @@ risponde 500 e Stripe ritenta.
 
 1. Developers → **Test clocks** → crea un orologio, e al suo interno un cliente con la carta
    `4000 0000 0000 0341` (si salva correttamente ma ogni addebito successivo **fallisce**).
-2. Crea l'abbonamento al prezzo RistoLink per quel cliente.
-3. Collega il cliente RistoLink: copia il `cus_…` in `clients.stripe_customer_id` (SQL Editor) oppure, più semplice,
+2. Crea l'abbonamento al prezzo MioSitoVeloce per quel cliente.
+3. Collega il cliente MioSitoVeloce: copia il `cus_…` in `clients.stripe_customer_id` (SQL Editor) oppure, più semplice,
    crea il cliente in dashboard, paga dal link con la carta `4242…`, poi nel portale cliente sostituisci la carta con `4000 0000 0000 0341`.
 4. Fai avanzare l'orologio oltre la data di rinnovo: arriva `invoice.payment_failed` → il cliente diventa **In ritardo**
    (compare in *Da richiamare*, parte il promemoria).
@@ -231,7 +231,7 @@ risponde 500 e Stripe ritenta.
    arriva `invoice.paid` → **Attivo**, sito di nuovo online.
 
 **Metodo rapido** (solo per vedere la reazione del webhook): `stripe trigger invoice.payment_failed`.
-Crea però un cliente Stripe nuovo, non collegato a nessun cliente RistoLink: nel log vedrai "cliente non trovato".
+Crea però un cliente Stripe nuovo, non collegato a nessun cliente MioSitoVeloce: nel log vedrai "cliente non trovato".
 
 Altre carte utili: `4000 0025 0000 3155` (richiede 3D Secure), `4000 0000 0000 9995` (fondi insufficienti al primo pagamento).
 
@@ -246,7 +246,7 @@ controllo "Stripe" mostra se sei in TEST o LIVE.
 ## 4. Deploy su Vercel
 
 1. Importa il repository su [vercel.com/new](https://vercel.com/new) (framework Next.js rilevato in automatico).
-2. Settings → Environment Variables: tutte quelle di `.env.example`, con `NEXT_PUBLIC_ROOT_DOMAIN=ristolink.it`.
+2. Settings → Environment Variables: tutte quelle di `.env.example`, con `NEXT_PUBLIC_ROOT_DOMAIN=miositoveloce.it`.
    Genera `CRON_SECRET` con `openssl rand -hex 32`.
 3. **Cron**: `vercel.json` esegue `/api/cron/reconcile` ogni giorno alle 03:17 UTC. Vercel invia da solo
    `Authorization: Bearer $CRON_SECRET`. (Sul piano Hobby i cron sono giornalieri: va benissimo.)
@@ -257,11 +257,11 @@ controllo "Stripe" mostra se sei in TEST o LIVE.
 
 ---
 
-## 5. DNS: wildcard `*.ristolink.it` e domini personalizzati
+## 5. DNS: wildcard `*.miositoveloce.it` e domini personalizzati
 
 ### Conviene spostare i nameserver? **Sì, su Vercel.**
 
-Per un dominio **wildcard** Vercel deve emettere un certificato SSL `*.ristolink.it`, e Let's Encrypt lo rilascia solo
+Per un dominio **wildcard** Vercel deve emettere un certificato SSL `*.miositoveloce.it`, e Let's Encrypt lo rilascia solo
 con la verifica DNS-01: Vercel può farla in automatico **solo se il dominio usa i nameserver di Vercel**.
 Con un semplice CNAME presso un altro provider (Aruba, Register, GoDaddy…) il wildcard non ottiene il certificato.
 
@@ -273,25 +273,25 @@ Con un semplice CNAME presso un altro provider (Aruba, Register, GoDaddy…) il 
 ### Passo passo
 
 1. Vercel → Project → Settings → **Domains** → aggiungi, nell'ordine:
-   - `ristolink.it`
-   - `www.ristolink.it` → scegli *Redirect to* `ristolink.it` (308)
-   - `admin.ristolink.it`
-   - `*.ristolink.it`
+   - `miositoveloce.it`
+   - `www.miositoveloce.it` → scegli *Redirect to* `miositoveloce.it` (308)
+   - `admin.miositoveloce.it`
+   - `*.miositoveloce.it`
 2. Vercel indicherà di usare i suoi nameserver. **Prima di cambiarli**, in Vercel → *Domains* (dashboard account) →
-   `ristolink.it` → **DNS Records**, ricrea i record che hai già presso il provider e che vuoi conservare, in
+   `miositoveloce.it` → **DNS Records**, ricrea i record che hai già presso il provider e che vuoi conservare, in
    particolare **la posta** (MX, SPF `TXT v=spf1 …`, DKIM, DMARC) e le eventuali verifiche (Google, ecc.).
-   Se cambi i nameserver senza ricrearli, **le email su @ristolink.it smettono di funzionare**.
-3. Dal pannello del tuo registrar (dove hai comprato ristolink.it) → *Gestione DNS / Nameserver* → sostituisci con:
+   Se cambi i nameserver senza ricrearli, **le email su @miositoveloce.it smettono di funzionare**.
+3. Dal pannello del tuo registrar (dove hai comprato miositoveloce.it) → *Gestione DNS / Nameserver* → sostituisci con:
    ```
    ns1.vercel-dns.com
    ns2.vercel-dns.com
    ```
 4. Attendi la propagazione (di solito 1-2 ore, fino a 48). In Vercel → Domains i quattro domini diventano
-   *Valid Configuration* e i certificati vengono emessi da soli. Verifica: `dig NS ristolink.it` e apri
-   `https://prova.ristolink.it` (deve mostrare "Sito non trovato", segno che il wildcard funziona).
-5. Se usi Resend per le email, aggiungi in Vercel DNS i record che Resend ti indica per `ristolink.it`.
+   *Valid Configuration* e i certificati vengono emessi da soli. Verifica: `dig NS miositoveloce.it` e apri
+   `https://prova.miositoveloce.it` (deve mostrare "Sito non trovato", segno che il wildcard funziona).
+5. Se usi Resend per le email, aggiungi in Vercel DNS i record che Resend ti indica per `miositoveloce.it`.
 
-> Se proprio non vuoi spostare i nameserver: puoi aggiungere a mano ogni sottodominio (`damario.ristolink.it` →
+> Se proprio non vuoi spostare i nameserver: puoi aggiungere a mano ogni sottodominio (`damario.miositoveloce.it` →
 > CNAME `cname.vercel-dns.com` e aggiungerlo in Vercel). Funziona, ma va fatto per ogni nuovo cliente.
 
 ### Domini personalizzati dei clienti (es. `damario.it`)
@@ -310,7 +310,7 @@ Con un semplice CNAME presso un altro provider (Aruba, Register, GoDaddy…) il 
    (se Vercel mostra un valore CNAME/A specifico per il progetto, usa quello). Se il dominio è già usato su un altro
    account Vercel ti verrà chiesto anche un record `TXT _vercel` di verifica.
 3. Appena i DNS puntano a Vercel il certificato SSL è automatico. Il sito resta raggiungibile anche su
-   `damario.ristolink.it`; il tag canonical punta al dominio personalizzato per evitare contenuti duplicati su Google.
+   `damario.miositoveloce.it`; il tag canonical punta al dominio personalizzato per evitare contenuti duplicati su Google.
 4. Le email del cliente (MX) non vanno toccate: si cambiano solo `@` e `www`.
 
 ---
@@ -333,7 +333,7 @@ Tutte documentate in [`.env.example`](.env.example). Riassunto:
 
 | Variabile | Obbligatoria | Note |
 |---|---|---|
-| `NEXT_PUBLIC_ROOT_DOMAIN` | sì | `ristolink.it` (locale `localhost:3000`) |
+| `NEXT_PUBLIC_ROOT_DOMAIN` | sì | `miositoveloce.it` (locale `localhost:3000`) |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | sì | chiave pubblica |
 | `SUPABASE_SECRET_KEY` | sì | solo server |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | sì | test → live |

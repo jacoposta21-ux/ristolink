@@ -1,18 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { classifyHost } from "./hosts";
 
-const R = "ristolink.it";
+const R = "miositoveloce.it";
 
 describe("classifyHost", () => {
   it("root, www, admin", () => {
-    expect(classifyHost("ristolink.it", R)).toEqual({ kind: "root" });
-    expect(classifyHost("RistoLink.it:443", R)).toEqual({ kind: "root" });
-    expect(classifyHost("www.ristolink.it", R)).toEqual({ kind: "www" });
-    expect(classifyHost("admin.ristolink.it", R)).toEqual({ kind: "admin" });
+    expect(classifyHost("miositoveloce.it", R)).toEqual({ kind: "root" });
+    expect(classifyHost("MioSitoVeloce.it:443", R)).toEqual({ kind: "root" });
+    expect(classifyHost("www.miositoveloce.it", R)).toEqual({ kind: "www" });
+    expect(classifyHost("admin.miositoveloce.it", R)).toEqual({ kind: "admin" });
   });
   it("sottodominio cliente", () => {
-    expect(classifyHost("damario.ristolink.it", R)).toEqual({ kind: "tenant-slug", slug: "damario" });
-    expect(classifyHost("a.b.ristolink.it", R)).toEqual({ kind: "invalid" });
+    expect(classifyHost("damario.miositoveloce.it", R)).toEqual({ kind: "tenant-slug", slug: "damario" });
+    expect(classifyHost("a.b.miositoveloce.it", R)).toEqual({ kind: "invalid" });
   });
   it("dominio personalizzato (con e senza www)", () => {
     expect(classifyHost("damario.it", R)).toEqual({ kind: "tenant-domain", domain: "damario.it" });

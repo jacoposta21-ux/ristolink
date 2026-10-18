@@ -1,6 +1,6 @@
-// Crea su Stripe il prodotto "Sito web RistoLink" e il prezzo 9,99 €/mese IVA inclusa.
+// Crea su Stripe il prodotto "Sito web MioSitoVeloce" e il prezzo 9,99 €/mese IVA inclusa.
 // Uso: STRIPE_SECRET_KEY=sk_test_... node scripts/stripe-setup.mjs
-// Idempotente: se esiste già un prezzo con lookup_key "ristolink_mensile" lo riusa.
+// Idempotente: se esiste già un prezzo con lookup_key "ristolink_mensile" (nome storico, già usato su Stripe) lo riusa.
 import Stripe from "stripe";
 
 const key = process.env.STRIPE_SECRET_KEY;
@@ -15,7 +15,7 @@ const existing = await stripe.prices.list({ lookup_keys: [LOOKUP], active: true,
 let price = existing.data[0];
 if (!price) {
   const product = await stripe.products.create({
-    name: "Sito web RistoLink",
+    name: "Sito web MioSitoVeloce",
     description: "Sito web per la tua attività: hosting, aggiornamenti e assistenza",
   });
   price = await stripe.prices.create({

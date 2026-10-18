@@ -1,5 +1,5 @@
 -- =====================================================================
--- RistoLink — schema iniziale
+-- MioSitoVeloce — schema iniziale
 -- Tabelle: admins, settings, clients, sites, payments, events_log, stripe_events
 -- Sicurezza: RLS attiva su tutto. Solo gli utenti presenti in "admins"
 -- possono leggere/scrivere. Webhook, cron e rendering pubblico usano la
