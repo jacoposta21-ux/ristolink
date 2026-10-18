@@ -22,7 +22,7 @@ const PALETTES: [string, string, string][] = [
 
 type Props = {
   clientId: string;
-  initial: { template: TemplateId; content: SiteContent; pubblicato: boolean };
+  initial: { template: TemplateId; content: SiteContent; pubblicato: boolean; htmlMode: boolean; customHtml: string | null };
   previewHref: string;
   siteUrl: string;
 };
@@ -31,6 +31,8 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
   const [template, setTemplate] = useState<TemplateId>(initial.template);
   const [c, setC] = useState<SiteContent>(initial.content);
   const [published, setPublished] = useState(initial.pubblicato);
+  const [htmlMode, setHtmlMode] = useState(initial.htmlMode);
+  const [customHtml, setCustomHtml] = useState(initial.customHtml ?? "");
   const [dirty, setDirty] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [saving, start] = useTransition();
@@ -59,7 +61,7 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
     const pub = opts.publish ?? published;
     const w = opts.thenPreview ? window.open("about:blank", "_blank") : null;
     start(async () => {
-      const r = await saveSiteAction(clientId, { template, content: c, pubblicato: pub });
+      const r = await saveSiteAction(clientId, { template, content: c, pubblicato: pub, htmlMode, customHtml });
       if (r?.error) {
         w?.close();
         setMsg({ ok: false, text: r.error });
@@ -105,6 +107,16 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
         </div>
       </div>
 
+      <Section title="Tipo di sito">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ModeButton active={!htmlMode} onClick={() => { setHtmlMode(false); setDirty(true); }} title="Template" text="Compili i campi (testi, orari, servizi, foto) e il sito si costruisce da solo." />
+          <ModeButton active={htmlMode} onClick={() => { setHtmlMode(true); setDirty(true); }} title="HTML personalizzato" text="Incolli o carichi una pagina HTML già pronta, ad esempio creata in chat con Claude." />
+        </div>
+      </Section>
+
+      {htmlMode && <HtmlEditor value={customHtml} onChange={(v) => { setCustomHtml(v); setDirty(true); setMsg(null); }} />}
+
+      {!htmlMode && (<>
       <Section title="1. Template e colori">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {TEMPLATES.map((t) => (
@@ -242,7 +254,9 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
         </div>
       </Section>
 
-      <Section title="7. Contatti e indirizzo">
+      </>)}
+
+      <Section title={htmlMode ? "Dati per la pagina privacy" : "7. Contatti e indirizzo"} hint={htmlMode ? "Usati per l'informativa privacy (/privacy) del sito: la pagina HTML ha i suoi contatti." : undefined}>
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Telefono"><input className={inputCls} value={c.contacts.phone} onChange={(e) => patch("contacts", { phone: e.target.value })} /></Field>
           <Field label="WhatsApp" hint="Vuoto = niente pulsante WhatsApp"><input className={inputCls} value={c.contacts.whatsapp} onChange={(e) => patch("contacts", { whatsapp: e.target.value })} /></Field>
@@ -260,10 +274,14 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
         </div>
       </Section>
 
-      <Section title="8. Galleria foto" hint="Fino a 24 foto, ridimensionate automaticamente">
+      <Section
+        title={htmlMode ? "Foto da usare nell'HTML" : "8. Galleria foto"}
+        hint={htmlMode ? "Carica qui le foto e apri ciascuna in una nuova scheda per copiarne il link da usare nell'HTML." : "Fino a 24 foto, ridimensionate automaticamente"}
+      >
         <GalleryEditor clientId={clientId} images={c.gallery} onChange={(g) => set("gallery", g)} />
       </Section>
 
+      {!htmlMode && (
       <Section title="9. Google e condivisione (SEO)">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-4">
@@ -277,7 +295,59 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
           <ImageInput clientId={clientId} label="Immagine per WhatsApp/Facebook (vuoto = copertina)" value={c.seo.ogImage} onChange={(v) => patch("seo", { ogImage: v })} />
         </div>
       </Section>
+      )}
     </div>
+  );
+}
+
+function ModeButton({ active, onClick, title, text }: { active: boolean; onClick: () => void; title: string; text: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-xl border p-4 text-left text-sm transition ${active ? "border-neutral-900 ring-2 ring-neutral-900/10" : "border-neutral-200 hover:border-neutral-400"}`}
+    >
+      <span className="font-semibold">{title}</span>
+      <span className="mt-1 block text-xs text-neutral-500">{text}</span>
+    </button>
+  );
+}
+
+function HtmlEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const kb = value ? Math.max(1, Math.round(new Blob([value]).size / 1024)) : 0;
+  return (
+    <Section title="Pagina HTML" hint="Una pagina completa (da <!doctype html> a </html>). In fondo viene aggiunta in automatico una riga con P. IVA e link Privacy, se manca.">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <label className={btnSecondary + " cursor-pointer"}>
+          <Upload className="h-4 w-4" /> Carica file .html
+          <input
+            type="file"
+            accept=".html,.htm,text/html"
+            className="hidden"
+            onChange={async (e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) onChange(await f.text());
+            }}
+          />
+        </label>
+        <span className="text-xs text-neutral-500">{kb} KB (max 2000 KB)</span>
+      </div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          spellCheck={false}
+          placeholder="Incolla qui l'HTML del sito…"
+          className={inputCls + " h-[32rem] font-mono text-xs leading-relaxed"}
+        />
+        <div className="overflow-hidden rounded-xl border border-neutral-200">
+          <div className="border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-xs text-neutral-500">Anteprima dal vivo</div>
+          {/* sandbox senza allow-same-origin: gli script girano isolati dalla dashboard */}
+          <iframe title="Anteprima HTML" srcDoc={value} sandbox="allow-scripts allow-popups" className="h-[30rem] w-full bg-white" />
+        </div>
+      </div>
+    </Section>
   );
 }
 

@@ -17,7 +17,7 @@ const EXTRA_ROOT_HOSTS = (process.env.EXTRA_ROOT_HOSTS || "").split(",").filter(
 const ADMIN_HOSTS = (process.env.ADMIN_HOSTS || "").split(",").filter(Boolean);
 
 // Percorsi interni che non devono essere raggiungibili direttamente
-const INTERNAL = /^\/(admin|tenant)(\/|$)/;
+const INTERNAL = /^\/(admin|tenant|tenant-html)(\/|$)/;
 
 export async function proxy(req: NextRequest) {
   const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host");
@@ -54,7 +54,11 @@ export async function proxy(req: NextRequest) {
       if (!tenant.pubblicato || !isLive(tenant.stato)) {
         return html(unavailableHtml(tenant.nome_attivita), 503, { "Retry-After": "3600" });
       }
-      url.pathname = `/tenant/${tenant.slug}${path === "/" ? "" : path}`;
+      // Sito HTML personalizzato: la home è la pagina HTML; privacy/sitemap/robots restano quelle standard
+      url.pathname =
+        tenant.html_mode && path === "/"
+          ? `/tenant-html/${tenant.slug}`
+          : `/tenant/${tenant.slug}${path === "/" ? "" : path}`;
       const res = NextResponse.rewrite(url);
       res.headers.set("x-tenant", tenant.slug);
       return res;

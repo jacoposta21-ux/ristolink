@@ -1,5 +1,5 @@
 // Risoluzione host -> tenant usata dal proxy. Chiama la funzione SQL
-// resolve_tenant() con la sola chiave pubblica e tiene una cache in memoria
+// resolve_tenant_v2() con la sola chiave pubblica e tiene una cache in memoria
 // di 60 secondi per istanza (anche per i "non trovato"), così il DB non
 // viene interrogato a ogni richiesta.
 
@@ -11,6 +11,8 @@ export type TenantInfo = {
   stato: ClientStatus;
   pubblicato: boolean;
   custom_domain: string | null;
+  /** servire l'HTML personalizzato invece del template */
+  html_mode: boolean;
 };
 
 const TTL_MS = (Number(process.env.TENANT_CACHE_TTL_SECONDS) || 60) * 1000;
@@ -30,7 +32,7 @@ export async function resolveTenant(
   const apikey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !apikey) throw new Error("Supabase non configurato");
 
-  const res = await fetcher(`${url}/rest/v1/rpc/resolve_tenant`, {
+  const res = await fetcher(`${url}/rest/v1/rpc/resolve_tenant_v2`, {
     method: "POST",
     headers: { apikey, Authorization: `Bearer ${apikey}`, "Content-Type": "application/json" },
     body: JSON.stringify("slug" in key ? { p_slug: key.slug } : { p_domain: key.domain }),

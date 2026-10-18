@@ -39,6 +39,8 @@ export type Site = {
   template: TemplateId;
   content: SiteContent;
   pubblicato: boolean;
+  html_mode: boolean;
+  custom_html: string | null;
   published_at: string | null;
   updated_at: string;
 };

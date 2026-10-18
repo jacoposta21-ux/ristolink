@@ -27,7 +27,13 @@ export default async function EditSitePage({ params }: { params: Promise<{ id: s
       </div>
       <SiteEditor
         clientId={id}
-        initial={{ template: site.template as TemplateId, content: parseContent(site.content), pubblicato: site.pubblicato }}
+        initial={{
+          template: site.template as TemplateId,
+          content: parseContent(site.content),
+          pubblicato: site.pubblicato,
+          htmlMode: site.html_mode,
+          customHtml: site.custom_html,
+        }}
         previewHref={`/clienti/${id}/anteprima`}
         siteUrl={tenantUrl(client.slug, client.custom_domain)}
       />

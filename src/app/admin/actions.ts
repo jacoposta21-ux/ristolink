@@ -12,6 +12,7 @@ import { syncClient } from "@/lib/billing/sync";
 import { createPortalSession } from "@/lib/billing/checkout";
 import { siteContentSchema, TEMPLATES, type TemplateId } from "@/lib/site/schema";
 import { defaultContent } from "@/lib/site/defaults";
+import { starterHtml, validateCustomHtml } from "@/lib/site/custom-html";
 import { tenantTag } from "@/lib/cache";
 import { addDomain, domainStatus, removeDomain, vercelConfigured, type DomainStatus } from "@/lib/vercel-domains";
 import type { Client } from "@/lib/types";
@@ -91,7 +92,10 @@ export async function createClientAction(_: ActionState, form: FormData): Promis
   const { supabase, actor } = await requireAdmin();
   const parsed = clientSchema.safeParse(formObject(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
-  const template = String(form.get("template") ?? "ristorante") as TemplateId;
+  // "html" = sito HTML personalizzato (il template sotto resta come riserva)
+  const choice = String(form.get("template") ?? "ristorante");
+  const htmlMode = choice === "html";
+  const template = (htmlMode ? "ristorante" : choice) as TemplateId;
   if (!TEMPLATES.includes(template)) return { error: "Template non valido" };
 
   const data = parsed.data;
@@ -112,10 +116,16 @@ export async function createClientAction(_: ActionState, form: FormData): Promis
     email: data.email,
     indirizzo: data.indirizzo,
   });
-  const { error: siteErr } = await supabase.from("sites").insert({ client_id: created.id, template, content });
+  const { error: siteErr } = await supabase.from("sites").insert({
+    client_id: created.id,
+    template,
+    content,
+    html_mode: htmlMode,
+    custom_html: htmlMode ? starterHtml(data.nome_attivita, data.telefono) : null,
+  });
   if (siteErr) return { error: `Cliente creato ma sito non creato: ${siteErr.message}` };
 
-  await logEvent(supabase, { clientId: created.id, actor, action: "cliente_creato", to: "in_attesa", details: { slug, template } });
+  await logEvent(supabase, { clientId: created.id, actor, action: "cliente_creato", to: "in_attesa", details: { slug, template: htmlMode ? "html" : template } });
   redirect(`/clienti/${created.id}?nuovo=1`);
 }
 
@@ -237,10 +247,14 @@ export async function domainStatusAction(id: string): Promise<DomainStatus | { e
 
 export async function saveSiteAction(
   clientId: string,
-  payload: { template: string; content: unknown; pubblicato: boolean },
+  payload: { template: string; content: unknown; pubblicato: boolean; htmlMode?: boolean; customHtml?: string | null },
 ): Promise<ActionState> {
   const { supabase, actor, client } = await loadClient(clientId);
   if (!TEMPLATES.includes(payload.template as TemplateId)) return { error: "Template non valido" };
+  if (payload.htmlMode) {
+    const htmlError = validateCustomHtml(payload.customHtml ?? "");
+    if (htmlError) return { error: htmlError };
+  }
   const parsed = siteContentSchema.safeParse(payload.content);
   if (!parsed.success) {
     const i = parsed.error.issues[0];
@@ -253,6 +267,9 @@ export async function saveSiteAction(
       template: payload.template,
       content: parsed.data,
       pubblicato: payload.pubblicato,
+      html_mode: !!payload.htmlMode,
+      // l'HTML resta salvato anche tornando al template
+      ...(payload.customHtml !== undefined ? { custom_html: payload.customHtml || null } : {}),
       ...(payload.pubblicato && !before?.pubblicato ? { published_at: new Date().toISOString() } : {}),
     })
     .eq("client_id", clientId);

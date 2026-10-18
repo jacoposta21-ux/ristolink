@@ -13,10 +13,13 @@ export type PublicSite = {
   content: SiteContent;
   pubblicato: boolean;
   updated_at: string;
+  /** sito "HTML personalizzato": pagina completa servita al posto del template */
+  htmlMode: boolean;
+  customHtml: string | null;
 };
 
 /**
- * Dati pubblici del sito, in cache (tag "tenant:<slug>") per 1 ora.
+ * Dati pubblici del sito, in cache (tag "tenant:<slug>") per 5 minuti.
  * La cache viene invalidata subito quando il sito viene salvato o lo stato cambia.
  */
 export const getPublicSite = (slug: string) =>
@@ -24,12 +27,19 @@ export const getPublicSite = (slug: string) =>
     async (): Promise<PublicSite | null> => {
       const { data } = await supabaseAdmin()
         .from("clients")
-        .select("nome_attivita, slug, custom_domain, telefono, email, indirizzo, partita_iva, codice_fiscale, stato, archived_at, sites(template, content, pubblicato, updated_at)")
+        .select("nome_attivita, slug, custom_domain, telefono, email, indirizzo, partita_iva, codice_fiscale, stato, archived_at, sites(template, content, pubblicato, updated_at, html_mode, custom_html)")
         .eq("slug", slug)
         .is("archived_at", null)
         .maybeSingle();
       if (!data || !data.sites) return null;
-      const site = data.sites as unknown as { template: TemplateId; content: unknown; pubblicato: boolean; updated_at: string };
+      const site = data.sites as unknown as {
+        template: TemplateId;
+        content: unknown;
+        pubblicato: boolean;
+        updated_at: string;
+        html_mode: boolean;
+        custom_html: string | null;
+      };
       return {
         client: {
           nome_attivita: data.nome_attivita,
@@ -46,8 +56,11 @@ export const getPublicSite = (slug: string) =>
         content: parseContent(site.content),
         pubblicato: site.pubblicato,
         updated_at: site.updated_at,
+        htmlMode: site.html_mode && !!site.custom_html,
+        customHtml: site.custom_html,
       };
     },
     ["public-site", slug],
-    { tags: [tenantTag(slug)], revalidate: 3600 },
+    // 5 minuti: copre anche le modifiche fatte direttamente sul database
+    { tags: [tenantTag(slug)], revalidate: 300 },
   )();

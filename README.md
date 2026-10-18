@@ -327,6 +327,22 @@ Con un semplice CNAME presso un altro provider (Aruba, Register, GoDaddy…) il 
 
 ---
 
+## 6b. Siti "HTML personalizzato" (creati a parte, es. in chat con Claude)
+
+Oltre ai 4 template puoi pubblicare una **pagina HTML completa** fatta su misura.
+
+- **Nuovo cliente** → Template: *HTML personalizzato*. Viene creata una pagina di partenza col nome dell'attività.
+- **Modifica sito** → *Tipo di sito: HTML personalizzato*: incolla l'HTML o carica il file `.html`. A fianco vedi
+  l'anteprima dal vivo. Le foto caricate nella sezione "Foto da usare nell'HTML" hanno un link pubblico da usare
+  nei tag `<img>`.
+- Si può anche chiedere a Claude in chat di creare il sito: lo salva direttamente nel database
+  (`sites.custom_html`, con `html_mode = true`) e compare online entro circa 5 minuti.
+- Abbonamento, sospensione (pagina neutra), dominio personalizzato, `/privacy`, `sitemap.xml` e `robots.txt`
+  funzionano come per gli altri siti. Se la pagina non contiene un link a `/privacy`, in fondo viene aggiunta
+  in automatico una riga con nome, P. IVA e link "Privacy e cookie".
+- Limite 2 MB per pagina; l'HTML può contenere CSS e JavaScript. Spegnendo l'opzione si torna al template, che
+  resta salvato.
+
 ## 7. Variabili d'ambiente
 
 Tutte documentate in [`.env.example`](.env.example). Riassunto:

@@ -97,6 +97,7 @@ export function ClientForm({ action, client, rootDomain, defaultTrialDays }: Pro
               {TEMPLATES.map((t) => (
                 <option key={t} value={t}>{TEMPLATE_LABEL[t]}</option>
               ))}
+              <option value="html">HTML personalizzato (pagina creata a parte, es. in chat con Claude)</option>
             </select>
           </Field>
         )}

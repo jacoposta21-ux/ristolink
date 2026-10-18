@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { parseContent, type TemplateId } from "@/lib/site/schema";
 import { SiteRenderer } from "@/components/site/SiteRenderer";
 import { isLive } from "@/lib/billing/status";
+import { withLegalFooter } from "@/lib/site/custom-html";
 import type { PublicClient } from "@/components/site/types";
 import type { Client, Site } from "@/lib/types";
 
@@ -29,6 +30,17 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     codice_fiscale: client.codice_fiscale,
   };
   const online = site.pubblicato && isLive(client.stato);
+  if (site.html_mode && site.custom_html) {
+    const html = withLegalFooter(site.custom_html, { nome: client.nome_attivita, partitaIva: client.partita_iva });
+    return (
+      <>
+        <div className="fixed left-1/2 top-3 z-[60] -translate-x-1/2 rounded-full bg-black/80 px-4 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur">
+          Anteprima HTML · {online ? "il sito è online" : "il sito NON è ancora visibile al pubblico"}
+        </div>
+        <iframe title="Anteprima" srcDoc={html} sandbox="allow-scripts allow-popups allow-forms" className="fixed inset-0 h-full w-full border-0" />
+      </>
+    );
+  }
   return (
     <>
       <div className="fixed left-1/2 top-3 z-[60] -translate-x-1/2 rounded-full bg-black/80 px-4 py-1.5 text-xs font-medium text-white shadow-lg backdrop-blur">
