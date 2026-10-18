@@ -56,7 +56,7 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
         id: s.client_reference_id ?? s.metadata?.client_id,
         customerId,
       });
-      if (!client) return `cliente non trovato per checkout ${s.id}`;
+      if (!client) return `ignorato: checkout ${s.id} non di un cliente RistoLink`;
       await db
         .from("clients")
         .update({ stripe_customer_id: client.stripe_customer_id ?? customerId, stripe_subscription_id: subscriptionId })
@@ -88,8 +88,10 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
         subscriptionId,
         customerId,
       });
-      await upsertPayment(db, inv, client?.id ?? null, subscriptionId);
-      if (!client) return `cliente non trovato per fattura ${inv.id}`;
+      // L'account Stripe può essere condiviso con altre attività: si salvano
+      // solo le fatture dei clienti RistoLink
+      if (!client) return `ignorato: fattura ${inv.id} non di un cliente RistoLink`;
+      await upsertPayment(db, inv, client.id, subscriptionId);
       if (event.type === "invoice.payment_failed") {
         await logEvent(db, {
           clientId: client.id,
@@ -111,7 +113,7 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
           details: { invoice_id: inv.id, amount_paid: inv.amount_paid },
         });
       }
-      if (!subscriptionId) return `fattura ${inv.id} senza abbonamento`;
+      // senza riferimento all'abbonamento, syncClient lo cerca dal customer
       const r = await syncClient(db, client, { actor, subscriptionId });
       return `sync ${client.slug}: ${r.from} -> ${r.to}`;
     }
@@ -127,7 +129,7 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
         subscriptionId: sub.id,
         customerId: idOf(sub.customer),
       });
-      if (!client) return `cliente non trovato per abbonamento ${sub.id}`;
+      if (!client) return `ignorato: abbonamento ${sub.id} non di un cliente RistoLink`;
       const r = await syncClient(db, client, { actor, subscriptionId: sub.id });
       return `sync ${client.slug}: ${r.from} -> ${r.to}`;
     }

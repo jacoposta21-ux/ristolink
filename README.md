@@ -337,6 +337,7 @@ Tutte documentate in [`.env.example`](.env.example). Riassunto:
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | sì | chiave pubblica |
 | `SUPABASE_SECRET_KEY` | sì | solo server |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | sì | test → live |
+| `STRIPE_PORTAL_CONFIG_ID` | no | portale dedicato (utile se l'account Stripe è condiviso) |
 | `CRON_SECRET` | sì | protegge il cron |
 | `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_NOTIFY_EMAIL` | no | email proprie |
 | `VERCEL_API_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | no | domini automatici |

@@ -76,6 +76,8 @@ export async function createPortalSession(client: Client, returnUrl = `${ROOT_UR
   if (!client.stripe_customer_id) throw new Error("Il cliente non ha ancora un account Stripe");
   const session = await getStripe().billingPortal.sessions.create({
     customer: client.stripe_customer_id,
+    // configurazione dedicata (l'account può avere un portale di default per altre attività)
+    ...(process.env.STRIPE_PORTAL_CONFIG_ID ? { configuration: process.env.STRIPE_PORTAL_CONFIG_ID } : {}),
     locale: "it",
     return_url: returnUrl,
   });
