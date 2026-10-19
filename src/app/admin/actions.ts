@@ -212,8 +212,8 @@ export async function setCustomDomainAction(id: string, _: ActionState, form: Fo
   const raw = String(form.get("custom_domain") ?? "");
   const domain = raw.trim() ? normalizeDomain(raw) : null;
   if (domain && !isValidDomain(domain)) return { error: "Dominio non valido (es. damario.it)" };
-  if (domain && domain.endsWith(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "miositoveloce.it"))
-    return { error: "Usa lo slug per i sottodomini di MioSitoVeloce" };
+  if (domain && domain.endsWith(process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "easysito.com"))
+    return { error: "Usa lo slug per i sottodomini di EasySito" };
 
   if (domain) {
     const { data: taken } = await supabase.from("clients").select("id").eq("custom_domain", domain).neq("id", id).maybeSingle();

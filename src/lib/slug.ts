@@ -8,7 +8,7 @@ export const RESERVED_SLUGS = new Set([
   "stripe", "static", "assets", "cdn", "media", "img", "images", "files",
   "blog", "docs", "help", "support", "supporto", "assistenza", "status",
   "dev", "test", "staging", "preview", "demo", "beta", "localhost",
-  "ristolink", "miositoveloce", "privacy", "cookie", "termini", "legal", "info", "contatti",
+  "ristolink", "miositoveloce", "easysito", "privacy", "cookie", "termini", "legal", "info", "contatti",
   "autoconfig", "autodiscover", "_dmarc", "_domainkey",
 ]);
 

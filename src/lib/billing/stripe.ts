@@ -9,7 +9,7 @@ export function getStripe(): Stripe {
   // STRIPE_API_HOST (opzionale) punta a stripe-mock per i test locali, es. "localhost:12111"
   const mock = process.env.STRIPE_API_HOST;
   stripe ??= new Stripe(env.stripeSecretKey(), {
-    appInfo: { name: "MioSitoVeloce" },
+    appInfo: { name: "EasySito" },
     maxNetworkRetries: 2,
     ...(mock ? { host: mock.split(":")[0], port: Number(mock.split(":")[1] ?? 80), protocol: "http" as const } : {}),
   });

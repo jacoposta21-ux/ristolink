@@ -56,7 +56,7 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
         id: s.client_reference_id ?? s.metadata?.client_id,
         customerId,
       });
-      if (!client) return `ignorato: checkout ${s.id} non di un cliente MioSitoVeloce`;
+      if (!client) return `ignorato: checkout ${s.id} non di un cliente EasySito`;
       await db
         .from("clients")
         .update({ stripe_customer_id: client.stripe_customer_id ?? customerId, stripe_subscription_id: subscriptionId })
@@ -89,8 +89,8 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
         customerId,
       });
       // L'account Stripe può essere condiviso con altre attività: si salvano
-      // solo le fatture dei clienti MioSitoVeloce
-      if (!client) return `ignorato: fattura ${inv.id} non di un cliente MioSitoVeloce`;
+      // solo le fatture dei clienti EasySito
+      if (!client) return `ignorato: fattura ${inv.id} non di un cliente EasySito`;
       await upsertPayment(db, inv, client.id, subscriptionId);
       if (event.type === "invoice.payment_failed") {
         await logEvent(db, {
@@ -129,7 +129,7 @@ export async function handleStripeEvent(db: SupabaseClient, event: Stripe.Event)
         subscriptionId: sub.id,
         customerId: idOf(sub.customer),
       });
-      if (!client) return `ignorato: abbonamento ${sub.id} non di un cliente MioSitoVeloce`;
+      if (!client) return `ignorato: abbonamento ${sub.id} non di un cliente EasySito`;
       const r = await syncClient(db, client, { actor, subscriptionId: sub.id });
       return `sync ${client.slug}: ${r.from} -> ${r.to}`;
     }

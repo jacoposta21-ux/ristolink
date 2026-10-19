@@ -22,7 +22,7 @@ async function send(to: string, subject: string, html: string) {
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-const layout = (body: string) => `<!doctype html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111;max-width:560px;margin:auto;padding:24px">${body}<p style="color:#666;font-size:13px;margin-top:32px">MioSitoVeloce — il sito della tua attività</p></body></html>`;
+const layout = (body: string) => `<!doctype html><html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#111;max-width:560px;margin:auto;padding:24px">${body}<p style="color:#666;font-size:13px;margin-top:32px">EasySito — il sito della tua attività</p></body></html>`;
 
 const button = (href: string, label: string) =>
   `<p><a href="${esc(href)}" style="display:inline-block;background:#111;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none">${esc(label)}</a></p>`;
@@ -65,7 +65,7 @@ export async function notifyAdmin(client: Client, from: ClientStatus | null, to:
   if (!admin) return;
   await send(
     admin,
-    `[MioSitoVeloce] ${client.nome_attivita}: ${from ? STATUS_LABEL[from] : "—"} → ${STATUS_LABEL[to]}`,
+    `[EasySito] ${client.nome_attivita}: ${from ? STATUS_LABEL[from] : "—"} → ${STATUS_LABEL[to]}`,
     layout(`<p><b>${esc(client.nome_attivita)}</b> (${esc(client.slug)}) è passato a <b>${STATUS_LABEL[to]}</b>.</p>
       <p>Origine: ${esc(actor)}${client.telefono ? ` · Tel: ${esc(client.telefono)}` : ""}</p>`),
   );

@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/auth";
 import { logout } from "../actions";
 
 export const metadata: Metadata = {
-  title: { default: "Dashboard — MioSitoVeloce", template: "%s — MioSitoVeloce Admin" },
+  title: { default: "Dashboard — EasySito", template: "%s — EasySito Admin" },
   robots: { index: false, follow: false },
 };
 
@@ -28,8 +28,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-900 text-sm font-bold text-white">M</span>
-            <span className="hidden sm:inline">MioSitoVeloce</span>
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-900 text-sm font-bold text-white">E</span>
+            <span className="hidden sm:inline">EasySito</span>
           </Link>
           <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
             {NAV.map(({ href, label, icon: Icon }) => (

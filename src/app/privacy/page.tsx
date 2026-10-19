@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-export const metadata: Metadata = { title: "Privacy — MioSitoVeloce" };
+export const metadata: Metadata = { title: "Privacy — EasySito" };
 
 export default function Privacy() {
-  const company = process.env.NEXT_PUBLIC_COMPANY_INFO ?? "MioSitoVeloce";
+  const company = process.env.NEXT_PUBLIC_COMPANY_INFO ?? "EasySito";
   const email = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
   return (
     <main className="mx-auto max-w-3xl px-5 py-14 leading-relaxed text-neutral-800 [&_h2]:mb-2 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold">
-      <Link href="/" className="text-sm underline">← MioSitoVeloce</Link>
+      <Link href="/" className="text-sm underline">← EasySito</Link>
       <h1 className="mt-6 text-3xl font-semibold">Informativa privacy</h1>
       <h2>Titolare</h2>
       <p>{company}{email && <> — <a className="underline" href={`mailto:${email}`}>{email}</a></>}</p>

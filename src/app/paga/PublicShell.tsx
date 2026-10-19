@@ -4,7 +4,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       <div className="w-full max-w-md">
         {children}
         <p className="mt-6 text-center text-xs text-neutral-500">
-          MioSitoVeloce · pagamenti sicuri gestiti da Stripe · <a href="/privacy" className="underline">Privacy</a>
+          EasySito · pagamenti sicuri gestiti da Stripe · <a href="/privacy" className="underline">Privacy</a>
         </p>
       </div>
     </main>

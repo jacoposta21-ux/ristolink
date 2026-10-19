@@ -6,7 +6,7 @@ function required(name: string): string {
   return v;
 }
 
-/** Dominio base, es. "miositoveloce.it" (in locale "localhost:3000"). */
+/** Dominio base, es. "easysito.com" (in locale "localhost:3000"). */
 export const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 
 const isLocal = ROOT_DOMAIN.startsWith("localhost") || ROOT_DOMAIN.startsWith("127.");
@@ -30,7 +30,7 @@ export const env = {
   stripePriceId: () => required("STRIPE_PRICE_ID"),
   cronSecret: () => required("CRON_SECRET"),
   resendApiKey: () => process.env.RESEND_API_KEY || null,
-  emailFrom: () => process.env.EMAIL_FROM || "MioSitoVeloce <noreply@miositoveloce.it>",
+  emailFrom: () => process.env.EMAIL_FROM || "EasySito <noreply@easysito.com>",
   adminNotifyEmail: () => process.env.ADMIN_NOTIFY_EMAIL || null,
   vercelToken: () => process.env.VERCEL_API_TOKEN || null,
   vercelProjectId: () => process.env.VERCEL_PROJECT_ID || null,

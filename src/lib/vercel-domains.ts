@@ -36,7 +36,7 @@ export async function addDomain(domain: string) {
 }
 
 /**
- * Sottodominio del cliente (es. damario.miositoveloce.it) aggiunto esplicitamente
+ * Sottodominio del cliente (es. damario.easysito.com) aggiunto esplicitamente
  * al progetto: Vercel gli emette un certificato proprio. Serve quando il wildcard
  * *.dominio non può avere il certificato (DNS non gestito da Vercel, es. domini .it su IONOS).
  * Innocuo se il wildcard funziona già.
