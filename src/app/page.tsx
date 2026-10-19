@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Check, Clock, MessageCircle, Phone, Search, ShieldCheck, Smartphone, Sparkles } from "lucide-react";
-import { waHref } from "@/lib/format";
+import { Check, Clock, Mail, Phone, Search, ShieldCheck, Smartphone, Sparkles } from "lucide-react";
 import { ROOT_URL } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -12,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 const PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? "";
-const EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";
+const EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contatti@easysito.com";
 
 const FEATURES = [
   { icon: Smartphone, title: "Perfetto sul telefono", text: "I tuoi clienti ti cercano dallo smartphone: il sito è pensato prima di tutto per loro." },
@@ -31,7 +30,7 @@ const FAQ = [
 ];
 
 export default function Landing() {
-  const contactHref = PHONE ? waHref(PHONE, "Ciao! Vorrei informazioni sul sito EasySito per la mia attività.") : EMAIL ? `mailto:${EMAIL}` : "#contatti";
+  const contactHref = `mailto:${EMAIL}?subject=${encodeURIComponent("Voglio il mio sito EasySito")}&body=${encodeURIComponent("Ciao! Vorrei informazioni sul sito per la mia attività.\n\nNome attività:\nTelefono:\n")}`;
   return (
     <div className="bg-white text-neutral-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
@@ -50,7 +49,7 @@ export default function Landing() {
         </p>
         <div className="mt-9 flex flex-wrap justify-center gap-3">
           <a href={contactHref} className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-7 py-4 font-semibold text-white hover:bg-neutral-700">
-            <MessageCircle className="h-5 w-5" /> Voglio il mio sito
+            <Mail className="h-5 w-5" /> Voglio il mio sito
           </a>
           <a href="#come-funziona" className="rounded-full border border-neutral-300 px-7 py-4 font-semibold hover:bg-neutral-50">Come funziona</a>
         </div>
