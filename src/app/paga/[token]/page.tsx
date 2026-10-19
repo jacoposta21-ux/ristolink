@@ -7,6 +7,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { getSettings } from "@/lib/settings";
 import { hasOngoingSubscription, trialDaysFor } from "@/lib/billing/checkout";
 import { euro } from "@/lib/format";
+import { planPriceCents } from "@/lib/plans";
 import { tenantUrl } from "@/lib/env";
 import { SubmitButton } from "@/components/admin/SubmitButton";
 import { PublicShell } from "../PublicShell";
@@ -60,7 +61,7 @@ export default async function PayPage({ params, searchParams }: Props) {
             <>
               <div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{euro(settings.monthly_price_cents)}</span>
+                  <span className="text-4xl font-bold">{euro(planPriceCents(client.plan ?? "base", settings))}</span>
                   <span className="text-neutral-500">/mese</span>
                 </div>
                 <p className="text-sm text-neutral-500">IVA inclusa · nessun costo di attivazione</p>
@@ -72,6 +73,7 @@ export default async function PayPage({ params, searchParams }: Props) {
               </div>
               <ul className="space-y-2 text-sm text-neutral-700">
                 {[
+                  ...(client.plan === "dominio" ? ["Dominio personalizzato incluso (es. tuonome.it)"] : []),
                   "Sito online su smartphone e computer",
                   "Pulsanti chiama, WhatsApp e indicazioni stradali",
                   "Aggiornamenti di orari, menù e foto inclusi",

@@ -344,6 +344,16 @@ nuovo cliente** (es. `damario.easysito.com`), che riceve così il suo certificat
 
 ---
 
+## 6a. Piani e QR code
+
+- **Base** (9,99 €/mese, `STRIPE_PRICE_ID`): sito su `nome.easysito.com`.
+- **Con dominio** (14,99 €/mese, `STRIPE_PRICE_ID_DOMINIO`): in più il dominio del cliente (es. `nome.it`).
+  Il piano si sceglie alla creazione del cliente e si cambia dalla scheda (card "Piano"): se l'abbonamento è attivo
+  il prezzo Stripe viene aggiornato subito con conguaglio sul rinnovo. Se il piano cambia da Stripe, la
+  sincronizzazione lo riporta nella dashboard.
+- **QR code**: nella scheda cliente, "Scarica PNG" (1200 px, per stampa) o "SVG" (vettoriale, per tipografia).
+  Punta al dominio personalizzato se presente, altrimenti al sottodominio.
+
 ## 6b. Siti "HTML personalizzato" (creati a parte, es. in chat con Claude)
 
 Oltre ai 4 template puoi pubblicare una **pagina HTML completa** fatta su misura.
@@ -370,6 +380,7 @@ Tutte documentate in [`.env.example`](.env.example). Riassunto:
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | sì | chiave pubblica |
 | `SUPABASE_SECRET_KEY` | sì | solo server |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | sì | test → live |
+| `STRIPE_PRICE_ID_DOMINIO` | sì per il piano con dominio | prezzo 14,99 €/mese |
 | `STRIPE_PORTAL_CONFIG_ID` | no | portale dedicato (utile se l'account Stripe è condiviso) |
 | `CRON_SECRET` | sì | protegge il cron |
 | `RESEND_API_KEY`, `EMAIL_FROM`, `ADMIN_NOTIFY_EMAIL` | no | email proprie |

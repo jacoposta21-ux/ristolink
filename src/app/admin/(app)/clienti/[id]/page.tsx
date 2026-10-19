@@ -5,7 +5,8 @@ import { requireAdmin } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Card, Notice, btnPrimary, btnSecondary } from "@/components/admin/ui";
-import { DomainForm, PortalButton, RegenerateLinks, ShareLink, StatusControls } from "@/components/admin/ClientActions";
+import { DomainForm, PlanControls, PortalButton, RegenerateLinks, ShareLink, StatusControls } from "@/components/admin/ClientActions";
+import { planPriceCents } from "@/lib/plans";
 import { isLive, STATUS_LABEL } from "@/lib/billing/status";
 import { date, dateTime, euro, telHref } from "@/lib/format";
 import { ROOT_URL, tenantUrl } from "@/lib/env";
@@ -79,7 +80,7 @@ export default async function ClientPage({
         <div className="space-y-6 lg:col-span-2">
           <Card title="Link di pagamento" actions={<RegenerateLinks clientId={id} />}>
             <p className="mb-3 text-sm text-neutral-600">
-              Invialo al cliente: apre una pagina con il riepilogo ({euro(client.monthly_amount_cents)}/mese IVA inclusa
+              Invialo al cliente: apre una pagina con il riepilogo ({euro(client.stripe_subscription_id ? client.monthly_amount_cents : planPriceCents(client.plan, settings))}/mese IVA inclusa
               {(client.trial_days ?? settings.default_trial_days) > 0 && !client.data_attivazione
                 ? `, ${client.trial_days ?? settings.default_trial_days} giorni gratis`
                 : ""}
@@ -195,8 +196,34 @@ export default async function ClientPage({
             </div>
           </Card>
 
+          <Card title="Piano">
+            <PlanControls
+              clientId={id}
+              plan={client.plan}
+              prices={{ base: euro(settings.monthly_price_cents), dominio: euro(settings.dominio_price_cents) }}
+              hasSubscription={!!client.stripe_subscription_id && ["trial", "attivo", "in_ritardo"].includes(client.stato)}
+            />
+          </Card>
+
+          <Card title="QR code del sito">
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/clienti/${id}/qr?formato=svg&anteprima=1`} alt="QR code del sito" className="h-28 w-28 rounded-lg border border-neutral-200 bg-white p-1" />
+              <div className="space-y-2 text-sm">
+                <p className="text-neutral-600">Inquadrandolo si apre <b className="break-all">{siteUrl.replace(/^https?:\/\//, "")}</b>. Da stampare su vetrine, menù e biglietti.</p>
+                <div className="flex flex-wrap gap-2">
+                  <a href={`/clienti/${id}/qr?formato=png`} className={btnSecondary + " !px-3 !py-1.5"}>Scarica PNG</a>
+                  <a href={`/clienti/${id}/qr?formato=svg`} className={btnSecondary + " !px-3 !py-1.5"}>SVG (per tipografia)</a>
+                </div>
+              </div>
+            </div>
+          </Card>
+
           <Card title="Dominio personalizzato">
             <div className="space-y-3 text-sm">
+              {client.plan !== "dominio" && (
+                <Notice kind="warn">Il dominio personalizzato è incluso nel piano <b>Con dominio</b>: cambia piano qui sopra prima di collegarlo.</Notice>
+              )}
               <p className="text-neutral-600">
                 Opzionale. Il sito resta sempre raggiungibile anche su <b>{client.slug}</b>.{ROOT_URL.replace(/^https?:\/\//, "")}.
               </p>

@@ -101,6 +101,14 @@ export function ClientForm({ action, client, rootDomain, defaultTrialDays }: Pro
             </select>
           </Field>
         )}
+        {!client && (
+          <Field label="Piano" hint="Si può cambiare in seguito dalla scheda cliente">
+            <select name="plan" className={inputCls} defaultValue="base">
+              <option value="base">Base — sottodominio (es. nome.easysito.com)</option>
+              <option value="dominio">Con dominio personalizzato (es. nome.it)</option>
+            </select>
+          </Field>
+        )}
         <Field label="Giorni di prova gratuita" hint={`Vuoto = predefinito (${defaultTrialDays} gg). Vale solo per il primo abbonamento.`}>
           <input name="trial_days" type="number" min={0} max={365} defaultValue={client?.trial_days ?? ""} className={inputCls} placeholder={String(defaultTrialDays)} />
         </Field>

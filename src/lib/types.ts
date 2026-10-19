@@ -1,5 +1,6 @@
 import type { ClientStatus, ManualOverride } from "./billing/status";
 import type { SiteContent, TemplateId } from "./site/schema";
+import type { Plan } from "./plans";
 
 export type Client = {
   id: string;
@@ -15,6 +16,7 @@ export type Client = {
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   stato: ClientStatus;
+  plan: Plan;
   manual_override: ManualOverride;
   trial_days: number | null;
   payment_token: string;
@@ -81,5 +83,6 @@ export type Settings = {
   grace_days: number;
   default_trial_days: number;
   monthly_price_cents: number;
+  dominio_price_cents: number;
   archive_after_days: number;
 };

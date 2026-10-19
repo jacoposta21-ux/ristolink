@@ -9,6 +9,7 @@ import { logEvent } from "../events";
 import { tenantTag } from "../cache";
 import { notifyAdmin, sendPaymentFailedReminder, sendSuspendedNotice } from "../email";
 import type { Client } from "../types";
+import { planFromPriceId } from "../plans";
 
 /**
  * Allinea UN cliente allo stato reale su Stripe.
@@ -50,8 +51,10 @@ export async function syncClient(
     updates.current_period_end = ts(subscriptionPeriodEnd(sub));
     updates.cancel_at_period_end = sub.cancel_at_period_end;
     updates.trial_end = ts(sub.trial_end);
-    const price = sub.items.data[0]?.price?.unit_amount;
-    if (price) updates.monthly_amount_cents = price;
+    const price = sub.items.data[0]?.price;
+    if (price?.unit_amount) updates.monthly_amount_cents = price.unit_amount;
+    const plan = planFromPriceId(price?.id);
+    if (plan) updates.plan = plan;
     // la prima data di cancellazione osservata fa partire i giorni prima dell'archiviazione
     updates.canceled_at =
       sub.status === "canceled" ? client.canceled_at ?? ts(sub.ended_at ?? sub.canceled_at) ?? now.toISOString() : null;

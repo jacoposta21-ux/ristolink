@@ -9,6 +9,7 @@ import {
   regenerateTokensAction,
   setCustomDomainAction,
   setOverrideAction,
+  setPlanAction,
   syncNowAction,
 } from "@/app/admin/actions";
 import { CopyButton } from "./CopyButton";
@@ -169,6 +170,45 @@ export function DomainForm({ clientId, current, vercel }: { clientId: string; cu
       {state?.error && <Notice kind="error">{state.error}</Notice>}
       {state?.message && <Notice kind="ok">{state.message}</Notice>}
       {status && <Notice>{status}</Notice>}
+    </div>
+  );
+}
+
+export function PlanControls({ clientId, plan, prices, hasSubscription }: {
+  clientId: string;
+  plan: "base" | "dominio";
+  prices: { base: string; dominio: string };
+  hasSubscription: boolean;
+}) {
+  const [pending, start] = useTransition();
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const choose = (next: "base" | "dominio") => {
+    if (next === plan) return;
+    const warn = hasSubscription
+      ? `Cambiare piano? L'abbonamento Stripe passa subito a ${next === "dominio" ? prices.dominio : prices.base}/mese, con conguaglio sul prossimo rinnovo.`
+      : "Cambiare piano? Il nuovo prezzo vale dal primo pagamento.";
+    if (!window.confirm(warn)) return;
+    start(async () => {
+      const r = await setPlanAction(clientId, next);
+      setMsg(r?.error ? { ok: false, text: r.error } : { ok: true, text: r?.message ?? "Fatto" });
+    });
+  };
+  const opt = (value: "base" | "dominio", title: string, price: string, desc: string) => (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() => choose(value)}
+      className={`w-full rounded-xl border p-3 text-left text-sm transition ${plan === value ? "border-emerald-600 bg-emerald-50 ring-2 ring-emerald-600/10" : "border-neutral-200 hover:border-neutral-400"}`}
+    >
+      <span className="flex justify-between font-semibold"><span>{title}</span><span>{price}/mese</span></span>
+      <span className="block text-xs text-neutral-500">{desc}</span>
+    </button>
+  );
+  return (
+    <div className="space-y-2">
+      {opt("base", "Base", prices.base, "Sito su nome.easysito.com")}
+      {opt("dominio", "Con dominio", prices.dominio, "Sito anche sul dominio del cliente (es. nome.it)")}
+      {msg && <p className={`text-xs ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</p>}
     </div>
   );
 }

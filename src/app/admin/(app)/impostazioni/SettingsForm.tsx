@@ -19,6 +19,9 @@ export function SettingsForm({ settings }: { settings: Settings }) {
         <Field label="Canone mensile mostrato (€ IVA incl.)" hint="Solo informativo: l'importo addebitato è quello del prezzo Stripe (STRIPE_PRICE_ID)">
           <input name="monthly_price" inputMode="decimal" defaultValue={(settings.monthly_price_cents / 100).toFixed(2).replace(".", ",")} className={inputCls} />
         </Field>
+        <Field label="Canone con dominio personalizzato (€ IVA incl.)" hint="Solo informativo: l'importo addebitato è quello del prezzo Stripe (STRIPE_PRICE_ID_DOMINIO)">
+          <input name="dominio_price" inputMode="decimal" defaultValue={(settings.dominio_price_cents / 100).toFixed(2).replace(".", ",")} className={inputCls} />
+        </Field>
         <Field label="Archivia i cancellati dopo (giorni)" hint="I dati restano nel database, il cliente sparisce dall'elenco principale">
           <input name="archive_after_days" type="number" min={1} defaultValue={settings.archive_after_days} className={inputCls} />
         </Field>

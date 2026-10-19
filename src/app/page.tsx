@@ -26,7 +26,7 @@ const FEATURES = [
 const FAQ = [
   ["Ci sono costi iniziali?", "No. Paghi solo 9,99 € al mese IVA inclusa, con carta o addebito sul conto (SEPA)."],
   ["Posso disdire quando voglio?", "Sì, senza penali. Disdici in autonomia dal tuo link di gestione pagamenti."],
-  ["Posso usare un mio dominio (es. miaattivita.it)?", "Sì. Di base il sito è su nomeattivita.easysito.com, ma possiamo collegare il tuo dominio."],
+  ["Posso usare un mio dominio (es. miaattivita.it)?", "Sì. Di base il sito è su nomeattivita.easysito.com; con il dominio personalizzato (14,99 €/mese) lo colleghiamo anche al tuo indirizzo."],
   ["Chi aggiorna i contenuti?", "Noi: ci invii le modifiche via WhatsApp o email e le pubblichiamo."],
 ];
 
@@ -99,7 +99,8 @@ export default function Landing() {
                 <li key={t} className="flex gap-2"><Check className="h-5 w-5 shrink-0 text-emerald-600" /> {t}</li>
               ))}
             </ul>
-            <a href={contactHref} className="mt-8 block rounded-xl bg-neutral-900 py-3.5 text-center font-semibold text-white hover:bg-neutral-700">Inizia ora</a>
+            <p className="mt-5 text-sm text-neutral-500">Vuoi un indirizzo tutto tuo, tipo <i>tuonome.it</i>? Con il dominio personalizzato sono 14,99 €/mese.</p>
+            <a href={contactHref} className="mt-6 block rounded-xl bg-neutral-900 py-3.5 text-center font-semibold text-white hover:bg-neutral-700">Inizia ora</a>
           </div>
         </div>
       </section>

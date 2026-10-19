@@ -17,6 +17,8 @@ import { tenantTag } from "@/lib/cache";
 import { addDomain, addSubdomain, domainStatus, removeDomain, removeSubdomain, vercelConfigured, type DomainStatus } from "@/lib/vercel-domains";
 import { ROOT_DOMAIN } from "@/lib/env";
 import type { Client } from "@/lib/types";
+import { PLAN_LABEL, priceIdFor, type Plan } from "@/lib/plans";
+import { getStripe } from "@/lib/billing/stripe";
 
 export type ActionState = { ok?: boolean; error?: string; message?: string } | undefined;
 
@@ -77,6 +79,7 @@ const clientSchema = z.object({
   codice_fiscale: opt(20),
   indirizzo: opt(250),
   slug: z.string().trim().toLowerCase(),
+  plan: z.enum(["base", "dominio"]).default("base"),
   note: opt(4000),
   trial_days: z
     .string()
@@ -143,7 +146,10 @@ export async function updateClientAction(id: string, _: ActionState, form: FormD
     const avail = await slugAvailable(data.slug, id);
     if (!avail.ok) return { error: avail.reason };
   }
-  const { error } = await supabase.from("clients").update(data).eq("id", id);
+  // il piano si cambia solo con setPlanAction (deve aggiornare anche Stripe)
+  const { plan: _ignored, ...fields } = data;
+  void _ignored;
+  const { error } = await supabase.from("clients").update(fields).eq("id", id);
   if (error) return { error: error.message };
   await logEvent(supabase, {
     clientId: id,
@@ -203,6 +209,36 @@ export async function regenerateTokensAction(id: string) {
   await supabase.from("clients").update({ payment_token: newToken(), portal_token: newToken(20) }).eq("id", id);
   await logEvent(supabase, { clientId: id, actor, action: "link_rigenerati" });
   revalidatePath(`/admin/clienti/${id}`);
+}
+
+/**
+ * Cambio piano (Base 9,99 ↔ Con dominio 14,99). Se c'è un abbonamento Stripe
+ * attivo cambia anche il prezzo addebitato, con conguaglio sul prossimo rinnovo.
+ */
+export async function setPlanAction(id: string, plan: Plan): Promise<ActionState> {
+  const { supabase, actor, client } = await loadClient(id);
+  if (client.plan === plan) return { ok: true };
+  try {
+    if (client.stripe_subscription_id && ["trial", "attivo", "in_ritardo"].includes(client.stato)) {
+      const stripe = getStripe();
+      const sub = await stripe.subscriptions.retrieve(client.stripe_subscription_id);
+      const item = sub.items.data[0];
+      if (sub.status !== "canceled" && item) {
+        await stripe.subscriptions.update(sub.id, {
+          items: [{ id: item.id, price: priceIdFor(plan) }],
+          proration_behavior: "create_prorations",
+          metadata: { ...sub.metadata, plan },
+        });
+      }
+    }
+  } catch (e) {
+    return { error: `Stripe: ${(e as Error).message}` };
+  }
+  await supabase.from("clients").update({ plan }).eq("id", id);
+  await logEvent(supabase, { clientId: id, actor, action: "piano_cambiato", details: { da: client.plan, a: plan } });
+  if (client.stripe_customer_id) await syncClient(supabase, { ...client, plan }, { actor });
+  revalidatePath(`/admin/clienti/${id}`);
+  return { ok: true, message: `Piano: ${PLAN_LABEL[plan]}` };
 }
 
 // ---------------------------------------------------------------- Dominio personalizzato
@@ -295,12 +331,14 @@ export async function updateSettingsAction(_: ActionState, form: FormData): Prom
     grace_days: z.coerce.number().int().min(0).max(60),
     default_trial_days: z.coerce.number().int().min(0).max(365),
     monthly_price_cents: z.coerce.number().int().min(1),
+    dominio_price_cents: z.coerce.number().int().min(1),
     archive_after_days: z.coerce.number().int().min(1).max(3650),
   });
   const parsed = schema.safeParse({
     grace_days: form.get("grace_days"),
     default_trial_days: form.get("default_trial_days"),
     monthly_price_cents: Math.round(Number(String(form.get("monthly_price") ?? "9.99").replace(",", ".")) * 100),
+    dominio_price_cents: Math.round(Number(String(form.get("dominio_price") ?? "14.99").replace(",", ".")) * 100),
     archive_after_days: form.get("archive_after_days"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };

@@ -2,7 +2,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getStripe } from "./stripe";
 import { getSettings } from "../settings";
-import { env, ROOT_URL } from "../env";
+import { ROOT_URL } from "../env";
+import { priceIdFor } from "../plans";
 import { logEvent } from "../events";
 import type { Client } from "../types";
 
@@ -39,7 +40,7 @@ export async function createCheckoutSession(db: SupabaseClient, client: Client):
     mode: "subscription",
     customer,
     client_reference_id: client.id,
-    line_items: [{ price: env.stripePriceId(), quantity: 1 }],
+    line_items: [{ price: priceIdFor(client.plan ?? "base"), quantity: 1 }],
     // Filtro sui metodi attivi in Dashboard → Settings → Payment methods (attiva Carte e SEPA Direct Debit)
     allowed_payment_method_types: ["card", "sepa_debit"],
     payment_method_collection: "always",
@@ -49,7 +50,7 @@ export async function createCheckoutSession(db: SupabaseClient, client: Client):
     customer_update: { name: "auto", address: "auto" },
     allow_promotion_codes: true,
     subscription_data: {
-      metadata: { client_id: client.id, slug: client.slug },
+      metadata: { client_id: client.id, slug: client.slug, plan: client.plan ?? "base" },
       ...(trialDays > 0
         ? {
             trial_period_days: trialDays,
