@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Check, Clock, Mail, Phone, Search, ShieldCheck, Smartphone, Sparkles } from "lucide-react";
 import { ROOT_URL } from "@/lib/env";
+import { ContactButton } from "@/components/landing/ContactButton";
 
 export const metadata: Metadata = {
   title: "EasySito — Il sito per la tua attività a 9,99 €/mese",
@@ -30,13 +31,12 @@ const FAQ = [
 ];
 
 export default function Landing() {
-  const contactHref = `mailto:${EMAIL}?subject=${encodeURIComponent("Voglio il mio sito EasySito")}&body=${encodeURIComponent("Ciao! Vorrei informazioni sul sito per la mia attività.\n\nNome attività:\nTelefono:\n")}`;
   return (
     <div className="bg-white text-neutral-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/logo.svg" alt="EasySito" className="h-9" />
-        <a href={contactHref} className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-700">Contattaci</a>
+        <ContactButton email={EMAIL} className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-700">Contattaci</ContactButton>
       </header>
 
       <section className="mx-auto max-w-6xl px-5 pb-20 pt-10 text-center md:pt-20">
@@ -48,9 +48,9 @@ export default function Landing() {
           Per ristoranti, parrucchieri, centri estetici, artigiani e negozi. Bello, veloce, trovabile su Google. Lo creiamo e lo aggiorniamo noi.
         </p>
         <div className="mt-9 flex flex-wrap justify-center gap-3">
-          <a href={contactHref} className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-7 py-4 font-semibold text-white hover:bg-neutral-700">
+          <ContactButton email={EMAIL} className="inline-flex items-center gap-2 rounded-full bg-neutral-900 px-7 py-4 font-semibold text-white hover:bg-neutral-700">
             <Mail className="h-5 w-5" /> Voglio il mio sito
-          </a>
+          </ContactButton>
           <a href="#come-funziona" className="rounded-full border border-neutral-300 px-7 py-4 font-semibold hover:bg-neutral-50">Come funziona</a>
         </div>
         <p className="mt-4 text-sm text-neutral-500">IVA inclusa · disdici quando vuoi</p>
@@ -99,7 +99,7 @@ export default function Landing() {
               ))}
             </ul>
             <p className="mt-5 text-sm text-neutral-500">Vuoi un indirizzo tutto tuo, tipo <i>tuonome.it</i>? Con il dominio personalizzato sono 14,99 €/mese.</p>
-            <a href={contactHref} className="mt-6 block rounded-xl bg-neutral-900 py-3.5 text-center font-semibold text-white hover:bg-neutral-700">Inizia ora</a>
+            <ContactButton email={EMAIL} className="mt-6 block w-full rounded-xl bg-neutral-900 py-3.5 text-center font-semibold text-white hover:bg-neutral-700">Inizia ora</ContactButton>
           </div>
         </div>
       </section>
