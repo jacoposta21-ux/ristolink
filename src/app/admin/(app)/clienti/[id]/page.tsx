@@ -167,12 +167,24 @@ export default async function ClientPage({
                   Pagamento fallito il {date(client.past_due_since)}. Se non paga, il sito verrà sospeso il <b>{date(graceEnd)}</b>.
                 </Notice>
               )}
-              {client.manual_override && (
+              {client.manual_override === "attivo" && (
                 <Notice kind="info">
-                  Stato forzato manualmente su <b>{client.manual_override}</b>: i pagamenti Stripe non lo cambiano finché non riattivi la modalità automatica.
+                  Sito messo online a mano{client.stripe_subscription_id ? "" : ", senza pagamento"}. Appena il cliente paga
+                  con il link qui sotto torna automatico; se non vuoi aspettare, puoi rimetterlo offline con &quot;Riattiva modalità automatica&quot;.
                 </Notice>
               )}
-              <StatusControls clientId={id} override={client.manual_override} />
+              {client.manual_override === "sospeso" && (
+                <Notice kind="info">
+                  Sito sospeso a mano: i pagamenti Stripe non lo cambiano finché non riattivi la modalità automatica.
+                </Notice>
+              )}
+              {client.stato === "in_attesa" && !client.manual_override && (
+                <p className="text-neutral-600">
+                  Il cliente non ha ancora pagato. Puoi metterlo online subito e mandargli il link di pagamento dopo.
+                  {!site?.pubblicato && " Ricorda di pubblicare anche il sito dall'editor."}
+                </p>
+              )}
+              <StatusControls clientId={id} override={client.manual_override} unpaid={client.stato === "in_attesa"} />
               <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 border-t border-neutral-100 pt-3 text-neutral-600">
                 <dt>Attivato il</dt><dd className="text-neutral-900">{date(client.data_attivazione)}</dd>
                 <dt>Prova fino al</dt><dd className="text-neutral-900">{date(client.trial_end)}</dd>

@@ -87,7 +87,12 @@ export function PortalButton({ clientId, disabled }: { clientId: string; disable
   );
 }
 
-export function StatusControls({ clientId, override }: { clientId: string; override: "sospeso" | "attivo" | null }) {
+export function StatusControls({ clientId, override, unpaid }: {
+  clientId: string;
+  override: "sospeso" | "attivo" | null;
+  /** il cliente non ha ancora pagato (in attesa del primo pagamento) */
+  unpaid?: boolean;
+}) {
   const [pending, start] = useTransition();
   const run = (fn: () => Promise<unknown>, confirmMsg?: string) => {
     if (confirmMsg && !window.confirm(confirmMsg)) return;
@@ -97,6 +102,15 @@ export function StatusControls({ clientId, override }: { clientId: string; overr
   };
   return (
     <div className="flex flex-wrap gap-2">
+      {unpaid && !override && (
+        <button
+          disabled={pending}
+          className={btnPrimary}
+          onClick={() => run(() => setOverrideAction(clientId, "attivo"), "Mettere il sito online subito, anche se il cliente non ha ancora pagato?\n\nQuando pagherà con il link, il sito tornerà automaticamente alla gestione con Stripe.")}
+        >
+          Metti online senza aspettare il pagamento
+        </button>
+      )}
       {override !== "sospeso" && (
         <button
           disabled={pending}
@@ -106,11 +120,11 @@ export function StatusControls({ clientId, override }: { clientId: string; overr
           Sospendi manualmente
         </button>
       )}
-      {override !== "attivo" && (
+      {override !== "attivo" && !unpaid && (
         <button
           disabled={pending}
           className={btnSecondary}
-          onClick={() => run(() => setOverrideAction(clientId, "attivo"), "Forzare il sito online indipendentemente dai pagamenti (es. pagamento in contanti/bonifico)?")}
+          onClick={() => run(() => setOverrideAction(clientId, "attivo"), "Forzare il sito online indipendentemente dai pagamenti (es. pagamento in contanti/bonifico)?\n\nSe il cliente paga con Stripe, si torna automaticamente alla gestione con Stripe.")}
         >
           Forza online
         </button>

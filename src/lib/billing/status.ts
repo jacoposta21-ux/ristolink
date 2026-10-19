@@ -42,6 +42,16 @@ export type StatusResult = {
 
 const DAY = 24 * 60 * 60 * 1000;
 
+/**
+ * "Forza online" serve anche a mettere il sito online prima che il cliente paghi:
+ * appena Stripe conferma l'abbonamento (attivo o in prova) si torna alla modalità
+ * automatica, così un pagamento fallito più avanti sospende il sito come previsto.
+ */
+export function effectiveOverride(override: ManualOverride, subscriptionStatus: string | null): ManualOverride {
+  if (override === "attivo" && (subscriptionStatus === "active" || subscriptionStatus === "trialing")) return null;
+  return override;
+}
+
 export function computeStatus(i: StatusInput): StatusResult {
   const base = computeFromStripe(i);
   if (i.manualOverride === "sospeso") return { ...base, status: "sospeso" };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeStatus, pickRelevantSubscription, type StatusInput } from "./status";
+import { computeStatus, effectiveOverride, pickRelevantSubscription, type StatusInput } from "./status";
 
 const now = new Date("2026-10-18T12:00:00Z");
 const day = 86_400_000;
@@ -73,6 +73,16 @@ describe("computeStatus", () => {
   it("override manuale ha la precedenza", () => {
     expect(computeStatus({ ...base, subscriptionStatus: "active", manualOverride: "sospeso" }).status).toBe("sospeso");
     expect(computeStatus({ ...base, subscriptionStatus: null, manualOverride: "attivo" }).status).toBe("attivo");
+  });
+});
+
+describe("effectiveOverride", () => {
+  it("online prima del pagamento: torna automatico quando Stripe conferma", () => {
+    expect(effectiveOverride("attivo", null)).toBe("attivo");
+    expect(effectiveOverride("attivo", "incomplete")).toBe("attivo");
+    expect(effectiveOverride("attivo", "active")).toBe(null);
+    expect(effectiveOverride("attivo", "trialing")).toBe(null);
+    expect(effectiveOverride("sospeso", "active")).toBe("sospeso");
   });
 });
 

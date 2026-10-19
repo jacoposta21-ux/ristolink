@@ -2,7 +2,7 @@ import "server-only";
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { revalidateTag } from "next/cache";
-import { computeStatus, pickRelevantSubscription, type ClientStatus } from "./status";
+import { computeStatus, effectiveOverride, pickRelevantSubscription, type ClientStatus } from "./status";
 import { getStripe, subscriptionPeriodEnd, ts } from "./stripe";
 import { getSettings } from "../settings";
 import { logEvent } from "../events";
@@ -29,10 +29,12 @@ export async function syncClient(
   const everActivated =
     !!client.data_attivazione || (!!sub && ["active", "trialing", "past_due", "unpaid"].includes(sub.status));
 
+  const subscriptionStatus = sub?.status ?? (client.stripe_subscription_id ? "canceled" : null);
+  const override = effectiveOverride(client.manual_override, subscriptionStatus);
   const result = computeStatus({
-    subscriptionStatus: sub?.status ?? (client.stripe_subscription_id ? "canceled" : null),
+    subscriptionStatus,
     pastDueSince: client.past_due_since ? new Date(client.past_due_since) : null,
-    manualOverride: client.manual_override,
+    manualOverride: override,
     everActivated,
     graceDays: settings.grace_days,
     now,
@@ -45,6 +47,7 @@ export async function syncClient(
     last_synced_at: now.toISOString(),
     data_attivazione: client.data_attivazione ?? (becameLive && sub ? now.toISOString() : null),
   };
+  if (override !== client.manual_override) updates.manual_override = override;
   if (sub) {
     updates.stripe_subscription_id = sub.id;
     updates.stripe_customer_id = client.stripe_customer_id ?? (typeof sub.customer === "string" ? sub.customer : sub.customer.id);
@@ -64,6 +67,14 @@ export async function syncClient(
 
   const { error } = await db.from("clients").update(updates).eq("id", client.id);
   if (error) throw new Error(`Aggiornamento cliente ${client.id} fallito: ${error.message}`);
+  if (override !== client.manual_override) {
+    await logEvent(db, {
+      clientId: client.id,
+      actor: opts.actor,
+      action: "override_rimosso",
+      details: { motivo: "pagamento Stripe confermato", subscription_status: subscriptionStatus },
+    });
+  }
 
   const from = client.stato;
   const to = result.status;
