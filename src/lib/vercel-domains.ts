@@ -35,6 +35,25 @@ export async function addDomain(domain: string) {
   return { ok: true as const };
 }
 
+/**
+ * Sottodominio del cliente (es. damario.miositoveloce.it) aggiunto esplicitamente
+ * al progetto: Vercel gli emette un certificato proprio. Serve quando il wildcard
+ * *.dominio non può avere il certificato (DNS non gestito da Vercel, es. domini .it su IONOS).
+ * Innocuo se il wildcard funziona già.
+ */
+export async function addSubdomain(fqdn: string) {
+  const res = await api(`/v10/projects/${env.vercelProjectId()}/domains`, { method: "POST", body: JSON.stringify({ name: fqdn }) });
+  if (!res.ok && res.body?.error?.code !== "domain_already_in_use" && res.status !== 409) {
+    console.error("[vercel] aggiunta sottodominio fallita", fqdn, res.status, res.body?.error?.message);
+    return false;
+  }
+  return true;
+}
+
+export async function removeSubdomain(fqdn: string) {
+  await api(`/v9/projects/${env.vercelProjectId()}/domains/${fqdn}`, { method: "DELETE" });
+}
+
 export async function removeDomain(domain: string) {
   const project = env.vercelProjectId();
   await api(`/v9/projects/${project}/domains/www.${domain}`, { method: "DELETE" });

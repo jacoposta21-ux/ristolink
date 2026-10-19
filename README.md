@@ -294,6 +294,23 @@ Con un semplice CNAME presso un altro provider (Aruba, Register, GoDaddy…) il 
 > Se proprio non vuoi spostare i nameserver: puoi aggiungere a mano ogni sottodominio (`damario.miositoveloce.it` →
 > CNAME `cname.vercel-dns.com` e aggiungerlo in Vercel). Funziona, ma va fatto per ogni nuovo cliente.
 
+### Domini .it: nameserver bloccati? (es. IONOS "Aggiornamento in corso")
+
+Il Registro .it accetta nuovi nameserver solo se rispondono già per il dominio, ma Vercel crea la zona DNS
+solo dopo che i nameserver puntano a lui: i due controlli si bloccano a vicenda. In questo caso **lascia i DNS
+dal provider** (es. IONOS) e crea lì questi record:
+
+| Tipo | Nome | Valore |
+|---|---|---|
+| A | `@` | `76.76.21.21` |
+| CNAME | `www` | `cname.vercel-dns.com` |
+| CNAME | `admin` | `cname.vercel-dns.com` |
+| CNAME | `*` | `cname.vercel-dns.com` |
+
+Senza nameserver Vercel il certificato wildcard non viene emesso: per questo, con `VERCEL_API_TOKEN` e
+`VERCEL_PROJECT_ID` impostati, la dashboard **aggiunge in automatico al progetto Vercel il sottodominio di ogni
+nuovo cliente** (es. `damario.miositoveloce.it`), che riceve così il suo certificato SSL in pochi minuti.
+
 ### Domini personalizzati dei clienti (es. `damario.it`)
 
 1. Nella scheda cliente → *Dominio personalizzato* → `damario.it` → **Collega dominio**.

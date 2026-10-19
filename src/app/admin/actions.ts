@@ -14,7 +14,8 @@ import { siteContentSchema, TEMPLATES, type TemplateId } from "@/lib/site/schema
 import { defaultContent } from "@/lib/site/defaults";
 import { starterHtml, validateCustomHtml } from "@/lib/site/custom-html";
 import { tenantTag } from "@/lib/cache";
-import { addDomain, domainStatus, removeDomain, vercelConfigured, type DomainStatus } from "@/lib/vercel-domains";
+import { addDomain, addSubdomain, domainStatus, removeDomain, removeSubdomain, vercelConfigured, type DomainStatus } from "@/lib/vercel-domains";
+import { ROOT_DOMAIN } from "@/lib/env";
 import type { Client } from "@/lib/types";
 
 export type ActionState = { ok?: boolean; error?: string; message?: string } | undefined;
@@ -126,6 +127,7 @@ export async function createClientAction(_: ActionState, form: FormData): Promis
   if (siteErr) return { error: `Cliente creato ma sito non creato: ${siteErr.message}` };
 
   await logEvent(supabase, { clientId: created.id, actor, action: "cliente_creato", to: "in_attesa", details: { slug, template: htmlMode ? "html" : template } });
+  if (vercelConfigured()) await addSubdomain(`${slug}.${ROOT_DOMAIN}`);
   redirect(`/clienti/${created.id}?nuovo=1`);
 }
 
@@ -151,6 +153,10 @@ export async function updateClientAction(id: string, _: ActionState, form: FormD
   });
   updateTag(tenantTag(old.slug));
   updateTag(tenantTag(data.slug));
+  if (data.slug !== old.slug && vercelConfigured()) {
+    await addSubdomain(`${data.slug}.${ROOT_DOMAIN}`);
+    await removeSubdomain(`${old.slug}.${ROOT_DOMAIN}`);
+  }
   revalidatePath(`/admin/clienti/${id}`);
   return { ok: true, message: "Dati salvati" };
 }
