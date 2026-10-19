@@ -28,8 +28,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-neutral-900 text-sm font-bold text-white">E</span>
-            <span className="hidden sm:inline">EasySito</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.svg" alt="EasySito" className="hidden h-8 sm:block" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mark.svg" alt="EasySito" className="h-8 w-8 sm:hidden" />
           </Link>
           <nav className="flex flex-1 items-center gap-1 overflow-x-auto">
             {NAV.map(({ href, label, icon: Icon }) => (

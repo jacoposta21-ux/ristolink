@@ -35,9 +35,8 @@ export default function Landing() {
   return (
     <div className="bg-white text-neutral-900">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <div className="flex items-center gap-2 text-lg font-bold">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-900 text-white">E</span> EasySito
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo.svg" alt="EasySito" className="h-9" />
         <a href={contactHref} className="rounded-full bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-700">Contattaci</a>
       </header>
 
