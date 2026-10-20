@@ -7,6 +7,7 @@ import { saveSiteAction } from "@/app/admin/actions";
 import { DAYS, TEMPLATE_LABEL, TEMPLATES, type SiteContent, type TemplateId } from "@/lib/site/schema";
 import { Field, inputCls, btnPrimary, btnSecondary } from "./ui";
 import { ImageInput, uploadImage } from "./ImageInput";
+import { countInlineImages, externalizeInlineImages } from "@/lib/site/inline-images";
 
 const PALETTES: [string, string, string][] = [
   ["Rosso trattoria", "#9a3412", "#ca8a04"],
@@ -61,7 +62,19 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
     const pub = opts.publish ?? published;
     const w = opts.thenPreview ? window.open("about:blank", "_blank") : null;
     start(async () => {
-      const r = await saveSiteAction(clientId, { template, content: c, pubblicato: pub, htmlMode, customHtml });
+      let html = customHtml;
+      if (htmlMode && countInlineImages(html) > 0) {
+        // foto incollate dentro l'HTML: le carichiamo come file prima di salvare
+        try {
+          html = await externalizeInlineImages(html, (f) => uploadImage(clientId, f));
+          setCustomHtml(html);
+        } catch (e) {
+          w?.close();
+          setMsg({ ok: false, text: `Caricamento delle foto non riuscito: ${(e as Error).message}` });
+          return;
+        }
+      }
+      const r = await saveSiteAction(clientId, { template, content: c, pubblicato: pub, htmlMode, customHtml: html });
       if (r?.error) {
         w?.close();
         setMsg({ ok: false, text: r.error });
@@ -114,7 +127,7 @@ export function SiteEditor({ clientId, initial, previewHref, siteUrl }: Props) {
         </div>
       </Section>
 
-      {htmlMode && <HtmlEditor value={customHtml} onChange={(v) => { setCustomHtml(v); setDirty(true); setMsg(null); }} />}
+      {htmlMode && <HtmlEditor clientId={clientId} value={customHtml} onChange={(v) => { setCustomHtml(v); setDirty(true); setMsg(null); }} />}
 
       {!htmlMode && (<>
       <Section title="1. Template e colori">
@@ -313,13 +326,38 @@ function ModeButton({ active, onClick, title, text }: { active: boolean; onClick
   );
 }
 
-function HtmlEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const kb = value ? Math.max(1, Math.round(new Blob([value]).size / 1024)) : 0;
+function HtmlEditor({ clientId, value, onChange }: { clientId: string; value: string; onChange: (v: string) => void }) {
+  const kb = value ? Math.max(1, Math.round(value.length / 1024)) : 0;
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  // l'anteprima si aggiorna quando smetti di scrivere: ricaricarla a ogni tasto blocca la pagina
+  const [preview, setPreview] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setPreview(value), 800);
+    return () => clearTimeout(t);
+  }, [value]);
+
+  async function load(html: string) {
+    setError(null);
+    if (countInlineImages(html) === 0) return onChange(html);
+    try {
+      const out = await externalizeInlineImages(html, (f) => uploadImage(clientId, f), (done, total) =>
+        setBusy(`Carico le foto contenute nella pagina… ${done}/${total}`),
+      );
+      onChange(out);
+    } catch (e) {
+      onChange(html);
+      setError(`Non sono riuscito a caricare le foto (${(e as Error).message}). Riprova a salvare.`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
-    <Section title="Pagina HTML" hint="Una pagina completa (da <!doctype html> a </html>). In fondo viene aggiunta in automatico una riga con P. IVA e link Privacy, se manca.">
+    <Section title="Pagina HTML" hint="Una pagina completa (da <!doctype html> a </html>). Le foto contenute nella pagina vengono caricate a parte in automatico. In fondo viene aggiunta una riga con P. IVA e link Privacy, se manca.">
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <label className={btnSecondary + " cursor-pointer"}>
-          <Upload className="h-4 w-4" /> Carica file .html
+        <label className={btnSecondary + (busy ? " pointer-events-none opacity-60" : " cursor-pointer")}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />} Carica file .html
           <input
             type="file"
             accept=".html,.htm,text/html"
@@ -327,24 +365,33 @@ function HtmlEditor({ value, onChange }: { value: string; onChange: (v: string) 
             onChange={async (e) => {
               const f = e.target.files?.[0];
               e.target.value = "";
-              if (f) onChange(await f.text());
+              if (f) await load(await f.text());
             }}
           />
         </label>
-        <span className="text-xs text-neutral-500">{kb} KB (max 2000 KB)</span>
+        <span className="text-xs text-neutral-500">{busy ?? `${kb} KB (max 2000 KB)`}</span>
       </div>
+      {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
       <div className="grid gap-4 lg:grid-cols-2">
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onPaste={(e) => {
+            const text = e.clipboardData.getData("text");
+            // incollata una pagina intera con foto dentro: la gestiamo come un file caricato
+            if (countInlineImages(text) > 0 && /<html[\s>]/i.test(text)) {
+              e.preventDefault();
+              void load(text);
+            }
+          }}
           spellCheck={false}
           placeholder="Incolla qui l'HTML del sito…"
           className={inputCls + " h-[32rem] font-mono text-xs leading-relaxed"}
         />
         <div className="overflow-hidden rounded-xl border border-neutral-200">
-          <div className="border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-xs text-neutral-500">Anteprima dal vivo</div>
+          <div className="border-b border-neutral-100 bg-neutral-50 px-3 py-1.5 text-xs text-neutral-500">Anteprima</div>
           {/* sandbox senza allow-same-origin: gli script girano isolati dalla dashboard */}
-          <iframe title="Anteprima HTML" srcDoc={value} sandbox="allow-scripts allow-popups" className="h-[30rem] w-full bg-white" />
+          <iframe title="Anteprima HTML" srcDoc={preview} sandbox="allow-scripts allow-popups" className="h-[30rem] w-full bg-white" />
         </div>
       </div>
     </Section>

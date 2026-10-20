@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
   // le pagine dei siti sono statiche e invalidate al salvataggio/cambio stato.
   cacheComponents: false,
   poweredByHeader: false,
+  // i siti HTML personalizzati arrivano fino a 2 MB (vedi MAX_HTML_BYTES)
+  experimental: { serverActions: { bodySizeLimit: "3mb" } },
   turbopack: {
     rules: {
       "*.css": {
